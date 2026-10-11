@@ -258,6 +258,11 @@ def pack_audio(assets_dir, dest_dir, partition_bytes, mod_dir=None):
         if leftover.is_file():
             leftover.unlink()
 
+    # The firmware reads only top-level files, so any directory here is stale build output.
+    for leftover in dest_dir.iterdir():
+        if leftover.is_dir():
+            shutil.rmtree(leftover)
+
     for name in STOCK_WAVS:
         source = assets_dir / name
         if not source.is_file():
@@ -275,16 +280,16 @@ def pack_audio(assets_dir, dest_dir, partition_bytes, mod_dir=None):
 
     total = sum(
         path.stat().st_size
-        for path in dest_dir.rglob("*")
+        for path in dest_dir.iterdir()
         if path.is_file()
     )
     limit = partition_bytes - HEADROOM_BYTES
     if total > limit:
         raise AudioPackError(
-            f"Filesystem image is {total} bytes; "
+            f"Audio image is {total} bytes; "
             f"spiffs allows {limit} after {HEADROOM_BYTES} bytes headroom"
         )
-    print(f"Filesystem image {total} bytes (limit {limit})")
+    print(f"Audio image {total} bytes (limit {limit})")
 
 
 def _overlay_mod(mod_dir, dest_dir):

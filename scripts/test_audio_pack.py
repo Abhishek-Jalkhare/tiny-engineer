@@ -70,6 +70,12 @@ class AudioPackTests(unittest.TestCase):
         pack_audio(self.assets, self.dest, 2_000_000)
         self.assertFalse((self.dest / "welcome.cue").exists())
 
+    def test_rebuild_drops_stale_directories(self):
+        (self.dest / "ui" / "assets").mkdir(parents=True)
+        (self.dest / "ui" / "assets" / "index.js").write_text("stale")
+        pack_audio(self.assets, self.dest, 2_000_000)
+        self.assertFalse((self.dest / "ui").exists())
+
     def test_stock_copy_has_no_cues(self):
         pack_audio(self.assets, self.dest, 2_000_000)
         for name in STOCK_WAVS:
