@@ -17,6 +17,8 @@ Screw lengths called out below (M2×4 / ×8 / ×16) match the reference list. If
 3. Desk stack → mount electronics → plug channels → Chair↔Desk → BottomCover
 4. Arms → Lamp → setup wizard
 
+
+
 ## 1. Head — OLED and servo
 
 1. Peel the protective sticker off the Waveshare OLED screen.
@@ -53,6 +55,8 @@ Use this recipe whenever a later step says to center a servo:
 2. Power the ESP32. Join the setup Wi‑Fi (`TinyEngineer-XXXX`), open `http://192.168.4.1/config`, and press **Move all to 90°**. The shaft is now at electrical center.
 3. After you finish that joint, **unplug** the servo from the PCA9685 before the next awkward join.
 
+
+
 ## 3. Neck — center a servo and attach `Neck`
 
 1. Take the **next** unused servo (not the one already in `Head`). Do **not** attach a plastic horn — `Neck` mounts on the shaft.
@@ -61,9 +65,9 @@ Use this recipe whenever a later step says to center a servo:
 4. Align the raised bulge in the middle of `Neck` toward the **back** of the servo — the longer end of the servo body (cable / electronics side).
 5. Fasten `Neck` with the **screw that came with the servo**, keeping that perpendicular orientation.
 6. Drop an **M2 nut** into a hexagonal pocket on `Neck`:
-   - Use the pocket with the **larger** center hole.
-   - That pocket is on the **robot’s right**.
-   - The pocket with the smaller hole is for mounting a servo later — leave it empty for now.
+  - Use the pocket with the **larger** center hole.
+  - That pocket is on the **robot’s right**.
+  - The pocket with the smaller hole is for mounting a servo later — leave it empty for now.
 7. Unplug this servo from the PCA9685 so the next steps are easier to handle.
 
 ![Neck](./assembly_visuals/neck_1.jpg)
@@ -75,8 +79,8 @@ Use this recipe whenever a later step says to center a servo:
 3. **Second stage:** slide `Neck` further onto `Head` until the side with the M2 nut sits flush with `Head` and lines up with the mounting hole on that side. Keep the nut in its hex pocket so it does not fall out.
 4. At 90°, `Neck` must sit **perpendicular** to `Head`. Adjust before fastening if needed.
 5. Fasten `Neck` to `Head`:
-   - Robot’s right: M2 screw into the captured nut (M2×8 mm works).
-   - Robot’s left: the mounting screw that came with the servo.
+  - Robot’s right: M2 screw into the captured nut (M2×8 mm works).
+  - Robot’s left: the mounting screw that came with the servo.
 6. Unplug the Head servo from the PCA9685 before continuing.
 
 ![Neck](./assembly_visuals/neck_2.jpg)
@@ -155,17 +159,21 @@ Seat the **main control board** in `Desk`. This step mounts what you already con
 3. **Speaker** — finish the board connector or the solder pads per the connect guide (one method only). Stick or tuck the speaker inside the desk as needed.
 4. Leave the ESP32 out until [§13](#13-esp32-powerap-smoke-test-and-lampbase) — it seats from above into the board headers through the desk-top cut.
 
+
+
 ## 13. ESP32, power/AP smoke test, and `LampBase`
 
 1. Seat the **ESP32-C3-Zero** in the desk-top opening from above so its pins pass through the cut **into the board headers** underneath. Orient using the **USB** marking on the PCB ([main-control-board.md](../hardware/main-control-board.md)). The module should sit flush and not stick up above the desk surface.
 2. **Power/AP smoke test** (optional but recommended) before locking the module in:
-   - Confirm seating and orientation. Servo plugs and the OLED come in [§15](#15-connect-servos-and-oled).
-   - Firmware should already be on the module.
-   - Apply power on the **board USB-C**. The ESP32 LED should light and the board should start the **setup access point**.
-   - If that looks good, **disconnect power**.
+  - Confirm seating and orientation. Servo plugs and the OLED come in [§15](#15-connect-servos-and-oled).
+  - Firmware should already be on the module.
+  - Apply power on the **board USB-C**. The ESP32 LED should light and the board should start the **setup access point**.
+  - If that looks good, **disconnect power**.
 3. Place the printed `LampButton` under `LampBase` so it can press the ESP32 **reset** button from above.
 4. Orient `LampBase` so its opening sits over the ESP32 status LED.
 5. Fasten `LampBase` to the desk with **two M2 screws** (M2×8 mm works). This also holds the ESP32 from above.
+
+
 
 ## 14. Desk props — laptop, mug, bell
 
@@ -182,17 +190,21 @@ Easiest with the desk tipped onto its front wall so the servo headers face up, a
 1. Plug every servo lead and the OLED cable into the labeled board headers ([main-control-board.md](../hardware/main-control-board.md)). Breakout build: plug them into the PCA9685 and the harness — [assembly-modular.md](assembly-modular.md).
 2. Use the correct PCA9685 channel order following labels on the board ([pinout](../hardware/pinout.md#pca9685-channels-not-esp32-gpio)):
 
-   | Channel | Joint |
-   | --- | --- |
-   | 0 | Head pitch |
-   | 1 | Neck yaw |
-   | 2 | Left hand |
-   | 3 | Right hand |
-   | 4 | Body / torso |
+  | Channel | Joint        |
+  | ------- | ------------ |
+  | 0       | Head pitch   |
+  | 1       | Neck yaw     |
+  | 2       | Left hand    |
+  | 3       | Right hand   |
+  | 4       | Body / torso |
 
 3. Power up and run a **servos + OLED smoke test**: servos respond, OLED shows something sensible, no brown-out or odd movement. If something is wrong, power down before swapping plugs.
 
-![Desk](./assembly_visuals/electronics_3.jpg)
+**Integrated PCB build:**  
+![Desk — Integrated PCB, board with headers for direct servo and display plug-in.](./assembly_visuals/electronics_3.jpg)
+
+**Modular breakout build:**  
+![Desk — Modular breakout build, using a PCA9685 and harness for servo/display connections.](./assembly_visuals/electronics_3b.jpg)
 
 ## 16. Fasten `Chair` to `Desk`
 
@@ -247,11 +259,11 @@ The robot is built. What remains is servo calibration, Wi-Fi, and a quick check 
 1. Connect power. The board should start the **setup access point** (`TinyEngineer-XXXX`). First boot, or after factory reset + power-cycle.
 2. Join that Wi-Fi and open the configurator (`http://192.168.4.1/config`).
 3. Walk through the **entire setup wizard**:
-   1. Seat printed parts on the servo shafts at 90°, then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here).
-   2. Look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation).
-   3. Tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping).
-   4. Play the welcome clip through the speaker.
-   5. Hostname and home Wi-Fi (**2.4 GHz** only). OLED shows join-AP steps.
+  1. Seat printed parts on the servo shafts at 90°, then mark each joint’s safe min/max (factory reset keeps prior ranges; you can still change them here).
+  2. Look at the OLED and tap Rotate 180° if text is upside down (factory reset keeps the rotation).
+  3. Tap Red/Green/Blue on the onboard LED; change mapping only if colors look wrong (default **GRB**; factory reset keeps the mapping).
+  4. Play the welcome clip through the speaker.
+  5. Hostname and home Wi-Fi (**2.4 GHz** only). OLED shows join-AP steps.
 4. When the wizard is finished, **disconnect power**, then power on again.
 5. The robot should join your home network and expose the **REST API**. Prove it — [getting-started §7](../getting-started.md#7-prove-it), [api.md](../api.md).
 
@@ -259,13 +271,16 @@ Wi-Fi is not editable from the normal Config page later — factory reset to cha
 
 ## Related
 
-| Topic | Doc |
-| --- | --- |
-| Overall build checklist | [getting-started.md](../getting-started.md) (assemble is [§5](../getting-started.md#5-assemble)) |
-| Shopping list | [shopping.md](../shopping.md) |
-| Parts inventory / printables | [3d_models/README.md](../../3d_models/README.md) |
-| Print or order parts | [getting-started §2](../getting-started.md#2-print-or-order) · [order-parts.md](order-parts.md) |
-| Different servo size / CAD params | [parametric-design.md](parametric-design.md) |
-| Servo axes and safe ranges | [robot-movement.md](../robot-movement.md) |
-| Connect and flash (before this page) | [hardware/main-control-board.md](../hardware/main-control-board.md) · [flash.md](../flash.md) |
-| Extra modules (advanced) | [assembly-modular.md](assembly-modular.md) · [hardware/wiring.md](../hardware/wiring.md) |
+
+| Topic                                | Doc                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| Overall build checklist              | [getting-started.md](../getting-started.md) (assemble is [§5](../getting-started.md#5-assemble)) |
+| Shopping list                        | [shopping.md](../shopping.md)                                                                    |
+| Parts inventory / printables         | [3d_models/README.md](../../3d_models/README.md)                                                 |
+| Print or order parts                 | [getting-started §2](../getting-started.md#2-print-or-order) · [order-parts.md](order-parts.md)  |
+| Different servo size / CAD params    | [parametric-design.md](parametric-design.md)                                                     |
+| Servo axes and safe ranges           | [robot-movement.md](../robot-movement.md)                                                        |
+| Connect and flash (before this page) | [hardware/main-control-board.md](../hardware/main-control-board.md) · [flash.md](../flash.md)    |
+| Extra modules (advanced)             | [assembly-modular.md](assembly-modular.md) · [hardware/wiring.md](../hardware/wiring.md)         |
+
+
