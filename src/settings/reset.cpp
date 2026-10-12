@@ -10,7 +10,7 @@ bool factoryResetSettings(bool* rebootRequired) {
     strcmp(g_bootHostname, SETTINGS_DEFAULT_HOSTNAME) != 0;
   const bool loadingReboot =
     strcmp(g_loading, SETTINGS_DEFAULT_LOADING) != 0;
-  const bool wifiReboot = g_wifiSsid[0] != '\0';
+  const bool wifiReboot = g_wifiNetworks.count() > 0;
 
   if (rebootRequired != nullptr) {
     *rebootRequired = hostReboot || loadingReboot || wifiReboot;
@@ -25,8 +25,7 @@ bool factoryResetSettings(bool* rebootRequired) {
   setLoadingCache(g_loading, SETTINGS_DEFAULT_LOADING);
   setEyesStyleCache(g_eyesStyle, SETTINGS_DEFAULT_EYES_STYLE);
   setAccessTokenCache(g_accessToken, SETTINGS_DEFAULT_ACCESS_TOKEN);
-  setWifiSsidCache(g_wifiSsid, "");
-  setWifiPasswordCache(g_wifiPassword, "");
+  g_wifiNetworks.clear();
   // Keep g_servoMin / g_servoMax, g_rgbOrder, and g_oledRotate180; write
   // them back after prefs.clear().
 
@@ -46,8 +45,6 @@ bool factoryResetSettings(bool* rebootRequired) {
     g_loading,
     g_eyesStyle,
     g_accessToken,
-    g_wifiSsid,
-    g_wifiPassword,
     g_servoMin,
     g_servoMax,
     g_rgbOrder,

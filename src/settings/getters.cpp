@@ -55,20 +55,12 @@ bool settingsAccessTokenSet() {
   return g_accessToken[0] != '\0';
 }
 
-const char* settingsWifiSsid() {
-  return g_wifiSsid;
-}
-
-const char* settingsWifiPassword() {
-  return g_wifiPassword;
+const WifiNetworkList& settingsWifiNetworks() {
+  return g_wifiNetworks;
 }
 
 bool settingsWifiConfigured() {
-  return g_wifiSsid[0] != '\0';
-}
-
-bool settingsWifiPasswordSet() {
-  return g_wifiPassword[0] != '\0';
+  return g_wifiNetworks.count() > 0;
 }
 
 float settingsServoMin(int index) {

@@ -14,8 +14,7 @@ uint32_t g_continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
 char g_loading[SETTINGS_LOADING_MAX_LEN + 1] = {};
 char g_eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1] = {};
 char g_accessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1] = {};
-char g_wifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1] = {};
-char g_wifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1] = {};
+WifiNetworkList g_wifiNetworks;
 uint8_t g_servoMin[SETTINGS_SERVO_COUNT] = {};
 uint8_t g_servoMax[SETTINGS_SERVO_COUNT] = {};
 char g_rgbOrder[SETTINGS_RGB_ORDER_MAX_LEN + 1] = {};
@@ -39,16 +38,6 @@ void setEyesStyleCache(char* dest, const char* src) {
 void setAccessTokenCache(char* dest, const char* src) {
   strncpy(dest, src, SETTINGS_ACCESS_TOKEN_MAX_LEN);
   dest[SETTINGS_ACCESS_TOKEN_MAX_LEN] = '\0';
-}
-
-void setWifiSsidCache(char* dest, const char* src) {
-  strncpy(dest, src, SETTINGS_WIFI_SSID_MAX_LEN);
-  dest[SETTINGS_WIFI_SSID_MAX_LEN] = '\0';
-}
-
-void setWifiPasswordCache(char* dest, const char* src) {
-  strncpy(dest, src, SETTINGS_WIFI_PASSWORD_MAX_LEN);
-  dest[SETTINGS_WIFI_PASSWORD_MAX_LEN] = '\0';
 }
 
 void setRgbOrderCache(char* dest, const char* src) {
@@ -80,8 +69,8 @@ void logSettingsSnapshot(const char* prefix) {
   serialLogPrint(" eyes_style=");
   serialLogPrint(g_eyesStyle);
   logAccessTokenState();
-  serialLogPrint(" wifi=");
-  serialLogPrint(g_wifiSsid[0] != '\0' ? "configured" : "unset");
+  serialLogPrint(" wifi_networks=");
+  serialLogPrint(g_wifiNetworks.count());
   serialLogPrint(" servos=");
 
   for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {

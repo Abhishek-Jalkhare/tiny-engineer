@@ -15,8 +15,10 @@ constexpr const char* kKeyContTo = "cont_to";
 constexpr const char* kKeyLoading = "loading";
 constexpr const char* kKeyEyesStyle = "eyes_sty";
 constexpr const char* kKeyAccessTok = "access_tok";
+// Single-network keys from older firmware; moved into kKeyWifiNets at boot.
 constexpr const char* kKeyWifiSsid = "wifi_ssid";
 constexpr const char* kKeyWifiPass = "wifi_pass";
+constexpr const char* kKeyWifiNets = "wifi_nets";
 constexpr const char* kKeyServoRanges = "sranges";
 constexpr const char* kKeyRgbOrder = "rgb_ord";
 constexpr const char* kKeyOledRot = "oled_rot";
@@ -51,8 +53,6 @@ void settingsNvsPutAll(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
@@ -69,8 +69,6 @@ bool writeAllToNvs(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,

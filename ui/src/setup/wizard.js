@@ -4,6 +4,7 @@ import { $ } from "../dom.js";
 import { applyServoRanges, rangesToParams } from "../servo-ranges.js";
 import { syncSetupUi } from "../shell.js";
 import { clearStatus, isBusy, perform, setStatus } from "../status.js";
+import { wifiNetworks } from "../wifi-networks.js";
 import { calibration } from "./calibration.js";
 import { ledMapping } from "./led.js";
 
@@ -248,13 +249,21 @@ $("#config-wifi-connect").addEventListener("click", async () => {
     return;
   }
 
-  const result = await perform({
+  // The connection test registers mDNS under the saved hostname, so it is saved first.
+  const hostnameSaved = await perform({
     path: "/settings",
-    params: {
-      wifi_ssid: ssid,
-      wifi_password: passwordField.value,
-      hostname: hostnameField.value,
-    },
+    params: { hostname: hostnameField.value },
+    pending: "Saving hostname…",
+    failure: "Hostname not saved",
+  });
+
+  if (!hostnameSaved?.ok) {
+    return;
+  }
+
+  const result = await perform({
+    path: "/settings/wifi",
+    json: wifiNetworks.withFirst(ssid, passwordField.value),
     pending: "Testing WiFi credentials…",
     failure: "WiFi connection failed",
   });
@@ -262,6 +271,8 @@ $("#config-wifi-connect").addEventListener("click", async () => {
   if (!result?.ok) {
     return;
   }
+
+  wifiNetworks.load(result.data);
 
   const { wifi_connect_success: connected, wifi_ip: ip, wifi_hostname: hostname } = result.data;
 

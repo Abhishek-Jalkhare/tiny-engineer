@@ -107,6 +107,26 @@ describe("setup wizard", () => {
     expect(stepLabel()).toBe("Step 2 of 5 · Screen");
   });
 
+  it("saves the hostname, then tests the new network ahead of the saved ones", async () => {
+    const robot = fakeRobot({ provisioning: true, settings: { wifi_networks: ["old"] } });
+
+    await loadApp("/");
+    $("#config-wifi-ssid").value = "home";
+    $("#config-wifi-password").value = "secret";
+    $("#config-wifi-hostname").value = "desk-bot";
+    await click("#config-wifi-connect");
+
+    const settingsWrites = robot.requests
+      .filter((request) => request.method !== "GET" && request.path.startsWith("/settings"))
+      .map((request) => `${request.method} ${request.path}`);
+    const put = robot.requests.find((request) => request.method === "PUT");
+
+    expect(settingsWrites).toEqual(["POST /settings", "PUT /settings/wifi"]);
+    expect(robot.lastPost("/settings").params).toEqual({ hostname: "desk-bot" });
+    expect(put.json).toEqual([{ ssid: "home", password: "secret" }, { ssid: "old" }]);
+    expect($("#status").textContent).toContain("WiFi connected");
+  });
+
   it("blocks a color mapping that uses a color twice", async () => {
     const robot = await startCalibration();
 

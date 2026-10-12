@@ -45,11 +45,24 @@ export async function apiGetJson(path) {
 }
 
 // `ok` also covers firmware errors reported as {"ok":false} in a 200 body.
-export async function apiPost(path, params) {
-  const response = await apiFetch(withQuery(path, params), { method: "POST" });
+async function toResult(response) {
   const data = await response.json();
 
   return { ok: response.ok && data.ok !== false, data };
+}
+
+export async function apiPost(path, params) {
+  return toResult(await apiFetch(withQuery(path, params), { method: "POST" }));
+}
+
+export async function apiPutJson(path, body) {
+  return toResult(
+    await apiFetch(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+  );
 }
 
 export function postQuietly(path, params) {

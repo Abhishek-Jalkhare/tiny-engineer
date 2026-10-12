@@ -3,6 +3,7 @@ import { applyConfigSettings } from "./config.js";
 import { device } from "./device.js";
 import { applyServoRanges } from "./servo-ranges.js";
 import { applyWizardSettings } from "./setup/wizard.js";
+import { wifiNetworks } from "./wifi-networks.js";
 import { setStatus } from "./status.js";
 
 export async function loadSettings() {
@@ -17,6 +18,7 @@ export async function loadSettings() {
     applyConfigSettings(settings);
     applyServoRanges(settings);
     applyWizardSettings(settings);
+    wifiNetworks.load(settings);
   } catch {
     setStatus("Could not load settings", "err");
   }

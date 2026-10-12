@@ -1,5 +1,6 @@
 #include "settings/internal.h"
 #include "settings/nvs.h"
+#include "serial_log.h"
 #include "settings/settings.h"
 
 #include <cstring>
@@ -14,8 +15,6 @@ bool saveSettings(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
@@ -35,8 +34,6 @@ bool saveSettings(
       loading == nullptr &&
       eyesStyle == nullptr &&
       accessToken == nullptr &&
-      wifiSsid == nullptr &&
-      wifiPassword == nullptr &&
       servoMins == nullptr &&
       servoMaxs == nullptr &&
       rgbOrder == nullptr &&
@@ -57,10 +54,6 @@ bool saveSettings(
   setEyesStyleCache(nextEyesStyle, g_eyesStyle);
   char nextAccessToken[SETTINGS_ACCESS_TOKEN_MAX_LEN + 1];
   setAccessTokenCache(nextAccessToken, g_accessToken);
-  char nextWifiSsid[SETTINGS_WIFI_SSID_MAX_LEN + 1];
-  setWifiSsidCache(nextWifiSsid, g_wifiSsid);
-  char nextWifiPassword[SETTINGS_WIFI_PASSWORD_MAX_LEN + 1];
-  setWifiPasswordCache(nextWifiPassword, g_wifiPassword);
   uint8_t nextServoMin[SETTINGS_SERVO_COUNT];
   uint8_t nextServoMax[SETTINGS_SERVO_COUNT];
   memcpy(nextServoMin, g_servoMin, SETTINGS_SERVO_COUNT);
@@ -133,22 +126,6 @@ bool saveSettings(
     setAccessTokenCache(nextAccessToken, accessToken);
   }
 
-  if (wifiSsid != nullptr) {
-    if (!settingsValidateWifiSsid(wifiSsid)) {
-      return false;
-    }
-
-    setWifiSsidCache(nextWifiSsid, wifiSsid);
-  }
-
-  if (wifiPassword != nullptr) {
-    if (!settingsValidateWifiPassword(wifiPassword)) {
-      return false;
-    }
-
-    setWifiPasswordCache(nextWifiPassword, wifiPassword);
-  }
-
   if (servoMins != nullptr || servoMaxs != nullptr) {
     if (servoMins == nullptr || servoMaxs == nullptr) {
       return false;
@@ -184,8 +161,6 @@ bool saveSettings(
         nextLoading,
         nextEyesStyle,
         nextAccessToken,
-        nextWifiSsid,
-        nextWifiPassword,
         nextServoMin,
         nextServoMax,
         nextRgbOrder,
@@ -203,8 +178,6 @@ bool saveSettings(
   setLoadingCache(g_loading, nextLoading);
   setEyesStyleCache(g_eyesStyle, nextEyesStyle);
   setAccessTokenCache(g_accessToken, nextAccessToken);
-  setWifiSsidCache(g_wifiSsid, nextWifiSsid);
-  setWifiPasswordCache(g_wifiPassword, nextWifiPassword);
   memcpy(g_servoMin, nextServoMin, SETTINGS_SERVO_COUNT);
   memcpy(g_servoMax, nextServoMax, SETTINGS_SERVO_COUNT);
   setRgbOrderCache(g_rgbOrder, nextRgbOrder);
@@ -215,6 +188,28 @@ bool saveSettings(
     *rebootRequired = true;
   }
 
+  logSettingsSnapshot("Settings saved:");
+  return true;
+}
+
+bool saveWifiNetworks(const WifiNetworkList& networks) {
+  if (!settingsNvsBeginWrite()) {
+    serialLogPrintln("Settings: NVS write open failed");
+    return false;
+  }
+
+  const size_t length = networks.count() * sizeof(WifiNetwork);
+  const bool written =
+    g_settingsPrefs.putBytes(kKeyWifiNets, networks.data(), length) == length;
+
+  settingsNvsEnd();
+
+  if (!written) {
+    serialLogPrintln("Settings: WiFi networks write failed");
+    return false;
+  }
+
+  g_wifiNetworks = networks;
   logSettingsSnapshot("Settings saved:");
   return true;
 }

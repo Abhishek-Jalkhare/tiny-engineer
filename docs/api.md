@@ -115,12 +115,11 @@ curl http://tiny-engineer.local/settings
   "eyes_style": "classic",
   "access_token_set": false,
   "wifi_configured": true,
-  "wifi_ssid": "MyNetwork",
-  "wifi_password_set": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
   "rgb_order": "GRB",
-  "oled_rotate_180": false
+  "oled_rotate_180": false,
+  "wifi_networks": ["MyNetwork", "Office"]
 }
 ```
 
@@ -135,9 +134,8 @@ curl http://tiny-engineer.local/settings
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
 | `access_token_set` | `true` when a non-empty access token is stored (secret itself is never returned) |
-| `wifi_configured` | `true` when a WiFi SSID is saved |
-| `wifi_ssid` | Saved network name (password is never returned) |
-| `wifi_password_set` | `true` when a non-empty WiFi password is saved |
+| `wifi_configured` | `true` when at least one WiFi network is saved |
+| `wifi_networks` | Saved network names (up to 5), in saved order. Passwords are never returned. At boot the robot scans and tries the visible saved networks strongest first, then the rest in this order (hidden SSIDs do not show in a scan). Change the list with [`PUT /settings/wifi`](#put-settingswifi) |
 | `servo_mins` | Per-joint safe minimum degrees `[head, neck, left, right, body]` (stock defaults **60, 40, 45, 35, 40**) |
 | `servo_maxs` | Per-joint safe maximum degrees (stock defaults **130, 130, 135, 125, 130**). Each max must be greater than the matching min |
 | `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
@@ -145,7 +143,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi credentials (`wifi_ssid` + `wifi_password`) are accepted **only in setup AP mode**; they are **tested before save**; on success the device connects to the home network and returns `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. `hostname` may be sent with those WiFi params (same validation as Config); it is saved before the STA connect so mDNS uses the chosen name immediately. Outside setup AP → **400** `wifi setup only in AP mode`. Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
@@ -158,7 +156,6 @@ curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
 curl -X POST "http://tiny-engineer.local/settings?eyes_style=kaomoji"
 curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
 curl -X POST "http://tiny-engineer.local/settings?access_token="
-curl -X POST "http://192.168.4.1/settings?wifi_ssid=MyNetwork&wifi_password=secret&hostname=desk-bot"
 curl -X POST "http://192.168.4.1/settings?servo_mins=60,40,45,35,40&servo_maxs=130,130,135,125,130"
 curl -X POST "http://192.168.4.1/settings?rgb_order=GRB"
 curl -X POST "http://192.168.4.1/settings?oled_rotate_180=1"
@@ -178,15 +175,11 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
   "eyes_style": "classic",
   "access_token_set": true,
   "wifi_configured": true,
-  "wifi_ssid": "MyNetwork",
-  "wifi_password_set": true,
   "servo_mins": [60, 40, 45, 35, 40],
   "servo_maxs": [130, 130, 135, 125, 130],
   "rgb_order": "GRB",
   "oled_rotate_180": false,
-  "wifi_connect_success": true,
-  "wifi_ip": "192.168.1.10",
-  "wifi_hostname": "desk-bot.local",
+  "wifi_networks": ["MyNetwork"],
   "reboot_required": true
 }
 ```
@@ -202,18 +195,35 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
 | `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
-| `wifi_ssid` | string | 1–32 chars; setup AP only; must be sent with `wifi_password` |
-| `wifi_password` | string | 0–63 chars; setup AP only; empty allowed for open networks; tested before save |
 | `servo_mins` | string | Five comma-separated integers `0`–`180` (`head,neck,left,right,body`); setup AP only; must be sent with `servo_maxs` |
 | `servo_maxs` | string | Five comma-separated integers `0`–`180`; setup AP only; each value must be greater than the matching min |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
 | `oled_rotate_180` | integer | `0` or `1`; setup AP only; default `0` |
 
-At least one param required. Invalid or missing-all → **400**. WiFi params outside setup AP → **400** `wifi setup only in AP mode`. Servo range params outside setup AP → **400** `servo setup only in AP mode`. RGB order outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation outside setup AP → **400** `oled setup only in AP mode`. WiFi test failure → **400** with error such as `SSID not found`, `Auth failed`, or `Timeout`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot. After successful WiFi save, `wifi_connect_success`, `wifi_ip`, and `wifi_hostname` are included.
+At least one param required. Invalid or missing-all → **400**. Servo range params outside setup AP → **400** `servo setup only in AP mode`. RGB order outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation outside setup AP → **400** `oled setup only in AP mode`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
+
+### `PUT /settings/wifi`
+
+Replace the saved WiFi networks with the list in the JSON body. The robot checks the whole list, then saves it in one write. A network without `password` keeps its saved password; a new network needs one (`""` for an open network). Order is boot priority for networks a scan misses. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+
+Outside setup AP mode the list is saved **without a test** and applies at the next boot; the current connection stays up. In setup AP mode the robot **tests the first network** before saving; on success it joins that network and the reply adds `wifi_connect_success`, `wifi_ip`, and `wifi_hostname`. The test registers mDNS under the saved hostname, so set `hostname` with `POST /settings` first.
+
+```bash
+curl -X PUT "http://tiny-engineer.local/settings/wifi" \
+  -H "Content-Type: application/json" \
+  -d '[{"ssid":"Office","password":"secret"},{"ssid":"Home"},{"ssid":"Cafe","password":""}]'
+```
+
+| Field | Type | Range |
+| --- | --- | --- |
+| `ssid` | string | 1–32 chars; unique in the list |
+| `password` | string | 0–63 chars; omit to keep the saved password of a saved `ssid` |
+
+The list must hold 1 to 5 networks, so the robot always has one to try; factory reset clears WiFi. Body not a JSON array → **400** `body must be a JSON array of networks`. An entry that is not an object, or has a non-string `ssid` or `password` (including `null`) → **400** `each network needs a string ssid and an optional string password`. Empty → **400** `send at least one wifi network`. New SSID without `password` → **400** `password required for a new network`. Bad length, the same SSID twice, or more than 5 networks → **400** `invalid ssid or password, duplicate ssid, or more than 5 networks`. WiFi test failure in setup AP mode → **400** with an error such as `SSID not found`, `Auth failed`, or `Timeout`.
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults, including WiFi credentials. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -233,6 +243,12 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "loading": "progress",
   "eyes_style": "classic",
   "access_token_set": false,
+  "wifi_configured": false,
+  "servo_mins": [60, 40, 45, 35, 40],
+  "servo_maxs": [130, 130, 135, 125, 130],
+  "rgb_order": "GRB",
+  "oled_rotate_180": false,
+  "wifi_networks": [],
   "reboot_required": true
 }
 ```
@@ -579,7 +595,7 @@ Errors arrive before any audio plays:
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
 | `415` | `{"ok":false,"error":"..."}` | `/play` body is not a supported WAV |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/settings`, `/settings/reset`, `/anim`, `/play`, or `/auth` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/settings`, `/settings/reset`, `/settings/wifi`, `/anim`, `/play`, or `/auth` path |
 
 Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 

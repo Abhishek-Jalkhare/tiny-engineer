@@ -62,8 +62,6 @@ void putAll(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
@@ -81,8 +79,6 @@ void putAll(
   g_settingsPrefs.putString(kKeyLoading, loading);
   g_settingsPrefs.putString(kKeyEyesStyle, eyesStyle);
   g_settingsPrefs.putString(kKeyAccessTok, accessToken);
-  g_settingsPrefs.putString(kKeyWifiSsid, wifiSsid);
-  g_settingsPrefs.putString(kKeyWifiPass, wifiPassword);
   g_settingsPrefs.putBytes(kKeyServoRanges, servoBlob, kServoRangesLen);
   g_settingsPrefs.putString(kKeyRgbOrder, rgbOrder);
   g_settingsPrefs.putBool(kKeyOledRot, oledRotate180);
@@ -100,8 +96,6 @@ bool writeAllToNvs(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
@@ -122,8 +116,6 @@ bool writeAllToNvs(
     loading,
     eyesStyle,
     accessToken,
-    wifiSsid,
-    wifiPassword,
     servoMins,
     servoMaxs,
     rgbOrder,
@@ -143,8 +135,6 @@ void settingsNvsPutAll(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
@@ -160,8 +150,6 @@ void settingsNvsPutAll(
     loading,
     eyesStyle,
     accessToken,
-    wifiSsid,
-    wifiPassword,
     servoMins,
     servoMaxs,
     rgbOrder,

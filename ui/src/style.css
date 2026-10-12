@@ -682,6 +682,46 @@ body.locked footer {
   background: #fde8e8;
 }
 
+.wifi-network-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.wifi-network {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.wifi-network-ssid {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.wifi-network-removed .wifi-network-ssid {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.wifi-network-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+#wifi-network-add {
+  text-align: center;
+}
+
+.wifi-network .btn {
+  width: auto;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+}
+
 .config-danger {
   border-color: #f5c2c7;
   margin-top: 1rem;

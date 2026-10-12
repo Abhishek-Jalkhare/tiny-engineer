@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <cstdint>
 
+class WifiNetworkList;
+
 constexpr uint32_t SETTINGS_DEFAULT_SLEEP_TIMEOUT_MIN = 10;
 constexpr const char* SETTINGS_DEFAULT_HOSTNAME = "tiny-engineer";
 constexpr uint8_t SETTINGS_DEFAULT_VOLUME = 70;
@@ -21,6 +23,7 @@ constexpr size_t SETTINGS_EYES_STYLE_MAX_LEN = 15;
 constexpr size_t SETTINGS_ACCESS_TOKEN_MAX_LEN = 64;
 constexpr size_t SETTINGS_WIFI_SSID_MAX_LEN = 32;
 constexpr size_t SETTINGS_WIFI_PASSWORD_MAX_LEN = 63;
+constexpr size_t SETTINGS_WIFI_NETWORK_MAX = 5;
 constexpr uint8_t SETTINGS_VOLUME_MIN = 0;
 constexpr uint8_t SETTINGS_VOLUME_MAX = 100;
 constexpr uint32_t SETTINGS_CONTINUOUS_TIMEOUT_MIN_MIN = 1;
@@ -44,10 +47,8 @@ const char* settingsLoading();
 const char* settingsEyesStyle();
 const char* settingsAccessToken();
 bool settingsAccessTokenSet();
-const char* settingsWifiSsid();
-const char* settingsWifiPassword();
+const WifiNetworkList& settingsWifiNetworks();
 bool settingsWifiConfigured();
-bool settingsWifiPasswordSet();
 float settingsServoMin(int index);
 float settingsServoMax(int index);
 const char* settingsRgbOrder();
@@ -84,14 +85,15 @@ bool saveSettings(
   const char* loading,
   const char* eyesStyle,
   const char* accessToken,
-  const char* wifiSsid,
-  const char* wifiPassword,
   const uint8_t* servoMins,
   const uint8_t* servoMaxs,
   const char* rgbOrder,
   const bool* oledRotate180,
   bool* rebootRequired
 );
+
+// Replaces every saved network in RAM and NVS.
+bool saveWifiNetworks(const WifiNetworkList& networks);
 
 // Clears NVS namespace and restores settings to defaults except servo
 // min/max, RGB LED byte order, and OLED 180° rotation, which stay as

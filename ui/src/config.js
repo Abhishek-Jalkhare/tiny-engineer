@@ -2,6 +2,7 @@ import { token } from "./api.js";
 import { $ } from "./dom.js";
 import { showRebootGate } from "./shell.js";
 import { clearStatus, perform, setStatus } from "./status.js";
+import { wifiNetworks } from "./wifi-networks.js";
 
 const EYES_STYLES = ["classic", "kaomoji", "cover", "dots"];
 const DEFAULT_VOLUME = 70;
@@ -150,28 +151,36 @@ async function saveConfig() {
     params.access_token = newToken;
   }
 
-  const result = await perform({
+  await perform({
     path: "/settings",
     params,
     pending: "Saving…",
     failure: "Save failed",
+    onSuccess: async (saved) => {
+      applyConfigSettings(saved, {
+        hostname: host,
+        continuous_timeout: params.continuous_timeout,
+        volume: params.volume,
+      });
+
+      if (newToken !== undefined) {
+        token.set(newToken);
+      }
+
+      const wifiChanged = wifiNetworks.pending;
+      const wifiError = await wifiNetworks.save();
+
+      if (wifiError) {
+        setStatus(`Settings saved. WiFi networks not saved: ${wifiError}`, "err");
+
+        return;
+      }
+
+      const wifiNote = wifiChanged ? " WiFi networks apply after reboot." : "";
+
+      setStatus(saveMessage(host, previousLoading, saved) + wifiNote, "ok");
+    },
   });
-
-  if (!result?.ok) {
-    return;
-  }
-
-  applyConfigSettings(result.data, {
-    hostname: host,
-    continuous_timeout: params.continuous_timeout,
-    volume: params.volume,
-  });
-
-  if (newToken !== undefined) {
-    token.set(newToken);
-  }
-
-  setStatus(saveMessage(host, previousLoading, result.data), "ok");
 }
 
 async function factoryReset() {
