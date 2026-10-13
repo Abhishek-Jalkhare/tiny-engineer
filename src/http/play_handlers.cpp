@@ -1,15 +1,14 @@
-#include "http/play_handlers.h"
-
 #include <Arduino.h>
 
-#include <cstdio>
 #include <optional>
 
 #include "animation.h"
 #include "audio/audio.h"
 #include "audio/audio_motion.h"
 #include "audio/wav_parser.h"
-#include "http/json.h"
+#include "http/access.h"
+#include "http/handlers.h"
+#include "http/response.h"
 #include "pins.h"
 #include "robot_tick.h"
 #include "settings/settings.h"
@@ -26,16 +25,10 @@ class PlaySession : public WavStreamParser::Sink {
 public:
   void begin(WebServer& server) {
     parser_.reset();
-    rejectCode_ = 0;
     started_ = false;
+    refusal_ = Refusal::check(server, Access::Configured);
 
-    if (!settingsWifiConfigured()) {
-      reject(503, "wifi not configured");
-      return;
-    }
-
-    if (!httpApiAuthorized(server)) {
-      reject(401, "unauthorized");
+    if (refusal_) {
       return;
     }
 
@@ -46,7 +39,7 @@ public:
     // Continuous animations and none play no sound of their own, so they cannot talk over the clip.
     if (!parseAnimationName(name, animation_) ||
         (animation_ != AnimationId::None && !animationIsContinuous(animation_))) {
-      reject(400, "name must be talking, typing, reading, thinking or none");
+      refusal_ = Refusal{400, "name must be talking, typing, reading, thinking or none"};
       return;
     }
 
@@ -79,19 +72,20 @@ public:
   }
 
   void respond(WebServer& server) {
-    if (rejectCode_ != 0) {
-      httpSendJson(server, rejectCode_, body_);
+    if (refusal_) {
+      refusal_->send(server);
       return;
     }
 
     if (parser_->failed()) {
-      formatError(parser_->error());
-      httpSendJson(server, 415, body_);
+      sendError(server, 415, parser_->error());
       return;
     }
 
-    snprintf(body_, sizeof(body_), "{\"ok\":true,\"played_ms\":%lu}", static_cast<unsigned long>(playedMs()));
-    httpSendJson(server, 200, body_);
+    JsonDocument body;
+    body["ok"] = true;
+    body["played_ms"] = playedMs();
+    sendJson(server, 200, body);
   }
 
   void onPcm(const int16_t* samples, size_t count) override {
@@ -121,17 +115,7 @@ private:
   AnimationId animation_ = AnimationId::Talking;
   AnimationId previous_ = AnimationId::None;
   bool started_ = false;
-  int rejectCode_ = 0;
-  char body_[96] = {};
-
-  void reject(int code, const char* message) {
-    rejectCode_ = code;
-    formatError(message);
-  }
-
-  void formatError(const char* message) {
-    snprintf(body_, sizeof(body_), "{\"ok\":false,\"error\":\"%s\"}", message);
-  }
+  std::optional<Refusal> refusal_;
 
   uint32_t playedMs() const {
     return static_cast<uint32_t>(parser_->samplesDelivered() * 1000ULL / SAMPLE_RATE);

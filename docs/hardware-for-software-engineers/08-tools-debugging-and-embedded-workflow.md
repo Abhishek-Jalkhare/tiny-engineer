@@ -73,7 +73,7 @@ Don't assemble everything, power on, and hope. **Bisect** like a failing integra
 | --- | --- |
 | 1. USB power only | ESP32 boots, serial output, dim green LED |
 | 2. + I2C (PCA9685, OLED) | Serial lists devices; PCA9685 required |
-| 3. + one servo on ch 0 | `/test/servo?index=0&angle=90` moves it |
+| 3. + one servo on ch 0 | `POST /test/servo` with `{"index":0,"angle":90}` moves it |
 | 4. + all servos | Each channel, safe ranges |
 | 5. + I2S amp + speaker | Audio test endpoint or animation with sound |
 | 6. + mechanical shell | Range of motion, no binding |

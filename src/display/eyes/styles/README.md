@@ -1,6 +1,6 @@
 # OLED eye styles
 
-Extensible eye renderers selected by Config / `POST /settings?eyes_style=…`.
+Extensible eye renderers selected by Config / `POST /settings` `{"eyes_style":"…"}`.
 
 | Id | Meaning |
 | --- | --- |

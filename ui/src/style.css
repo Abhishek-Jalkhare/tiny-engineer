@@ -74,14 +74,6 @@ nav a.active {
   color: #fff;
 }
 
-.view {
-  display: none;
-}
-
-.view.active {
-  display: block;
-}
-
 .hero {
   margin-bottom: 2rem;
 }
@@ -198,11 +190,6 @@ nav a.active {
   border-radius: 0.4rem;
   margin-bottom: 1rem;
   font-size: 0.9rem;
-  display: none;
-}
-
-#status.show {
-  display: block;
 }
 
 #status.loading {
@@ -519,7 +506,7 @@ footer {
 }
 
 .gate {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   background: var(--bg);
@@ -527,10 +514,6 @@ footer {
   padding: 2rem 1rem;
   align-items: center;
   justify-content: center;
-}
-
-.gate.show {
-  display: flex;
 }
 
 .gate-box {
@@ -558,21 +541,9 @@ footer {
 }
 
 #auth-error {
-  display: none;
   color: var(--error);
   font-size: 0.85rem;
   margin-bottom: 0.75rem;
-}
-
-#auth-error.show {
-  display: block;
-}
-
-body.locked nav,
-body.locked #status,
-body.locked .view,
-body.locked footer {
-  display: none !important;
 }
 
 .form-group input[type="password"] {
@@ -727,25 +698,6 @@ body.locked footer {
   margin-top: 1rem;
 }
 
-body.setup-mode nav,
-body.setup-mode footer {
-  display: none !important;
-}
-
-body.setup-mode #config-form,
-body.setup-mode .config-danger {
-  display: none !important;
-}
-
-body.setup-mode #config-page-title,
-body.setup-mode #config-page-desc {
-  display: none !important;
-}
-
-body:not(.setup-mode) #setup-wizard {
-  display: none !important;
-}
-
 .setup-progress-track {
   height: 0.35rem;
   background: #e8e4df;
@@ -766,10 +718,6 @@ body:not(.setup-mode) #setup-wizard {
   gap: 0.75rem;
   margin-top: 1.25rem;
   align-items: stretch;
-}
-
-.setup-footer[hidden] {
-  display: none !important;
 }
 
 .setup-footer .btn {
@@ -1030,7 +978,6 @@ body:not(.setup-mode) #setup-wizard {
   border-color: #1e88e5;
 }
 
-#auth-form .btn-primary,
 #config-wifi-connect {
   margin-top: 0;
 }

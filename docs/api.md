@@ -1,10 +1,10 @@
 # HTTP API
 
-JSON HTTP server on the ESP32-C3. Source: [`src/http/http_server.cpp`](../src/http/http_server.cpp) and handlers under [`src/http/`](../src/http/), test routes in [`src/http/test_handlers.cpp`](../src/http/test_handlers.cpp).
+JSON HTTP server on the ESP32-C3. Source: [`src/http/`](../src/http/). Every route and its access rule is listed in [`src/http/routes.cpp`](../src/http/routes.cpp).
 
 Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `http://192.168.4.1/`. Base URL is the board IP (OLED / serial) or `http://tiny-engineer.local` (mDNS, 2.4 GHz only).
 
-Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). `Content-Type: application/json`. CORS: `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization`.
+Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS`; a preflight `OPTIONS` gets **200**.
 
 When WiFi credentials are not saved yet, control APIs (`/anim`, `/test/*`) return **503** `{"ok":false,"error":"wifi not configured"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP.
 
@@ -35,12 +35,13 @@ curl http://tiny-engineer.local/auth
 ```
 
 ```json
-{ "ok": true, "required": false, "wifi_configured": true, "provisioning": false }
+{ "ok": true, "version": "v0.3.0", "required": false, "wifi_configured": true, "provisioning": false }
 ```
 
 | Field | Meaning |
 | --- | --- |
 | `ok` | Always `true` on this route |
+| `version` | Firmware version, same as `GET /health` |
 | `required` | `true` when a non-empty access token is configured |
 | `wifi_configured` | `true` when WiFi credentials are saved in NVS |
 | `provisioning` | `true` when the setup AP is active |
@@ -140,26 +141,22 @@ curl http://tiny-engineer.local/settings
 | `servo_maxs` | Per-joint safe maximum degrees (stock defaults **130, 130, 135, 125, 130**). Each max must be greater than the matching min |
 | `rgb_order` | Onboard WS2812 wire-byte order (`RGB`, `RBG`, `GRB`, `GBR`, `BRG`, `BGR`). Default **`GRB`**. Survives factory reset |
 | `oled_rotate_180` | OLED 180° rotation (`true` → `setRotation(2)`). Default **`false`**. Setup AP only. Survives factory reset |
+| `reboot_required` | `true` once the saved `hostname`, `loading` or WiFi networks differ from what this boot started with; those apply only after a reboot |
 
 ### `POST /settings`
 
-Update one or more settings. Query params. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`) are also **setup AP only**; they apply immediately to motion clamps. Outside setup AP → **400** `servo setup only in AP mode`. RGB LED mapping (`rgb_order`) is **setup AP only** and applies immediately to the onboard LED. Outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation (`oled_rotate_180`) is **setup AP only** and applies immediately to the display. Outside setup AP → **400** `oled setup only in AP mode`. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=2"
-curl -X POST "http://tiny-engineer.local/settings?hostname=desk-bot"
-curl -X POST "http://tiny-engineer.local/settings?volume=40"
-curl -X POST "http://tiny-engineer.local/settings?welcome=0"
-curl -X POST "http://tiny-engineer.local/settings?serial_log=1"
-curl -X POST "http://tiny-engineer.local/settings?continuous_timeout=10"
-curl -X POST "http://tiny-engineer.local/settings?loading=sleep_inertia"
-curl -X POST "http://tiny-engineer.local/settings?eyes_style=kaomoji"
-curl -X POST "http://tiny-engineer.local/settings?access_token=secret"
-curl -X POST "http://tiny-engineer.local/settings?access_token="
-curl -X POST "http://192.168.4.1/settings?servo_mins=60,40,45,35,40&servo_maxs=130,130,135,125,130"
-curl -X POST "http://192.168.4.1/settings?rgb_order=GRB"
-curl -X POST "http://192.168.4.1/settings?oled_rotate_180=1"
-curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny-engineer&volume=70&welcome=1&serial_log=0&continuous_timeout=5&loading=progress"
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"volume":40,"welcome":false,"eyes_style":"kaomoji"}'
+curl -X POST "http://tiny-engineer.local/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"access_token":""}'
+curl -X POST "http://192.168.4.1/settings" \
+  -H "Content-Type: application/json" \
+  -d '{"servo_mins":[60,40,45,35,40],"servo_maxs":[130,130,135,125,130],"rgb_order":"GRB","oled_rotate_180":true}'
 ```
 
 ```json
@@ -184,23 +181,23 @@ curl -X POST "http://tiny-engineer.local/settings?sleep_timeout=10&hostname=tiny
 }
 ```
 
-| Param | Type | Range |
+| Field | Type | Range |
 | --- | --- | --- |
 | `sleep_timeout` | integer | 1–1440 minutes (positive) |
 | `hostname` | string | 1–31 chars, `[A-Za-z0-9-]`, not starting/ending with `-` |
 | `volume` | integer | 0–100 percent |
-| `welcome` | integer | `0` or `1` (boot welcome animation) |
-| `serial_log` | integer | `0` or `1` (USB serial debug logging) |
+| `welcome` | boolean | Boot welcome animation |
+| `serial_log` | boolean | USB serial debug logging |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
-| `access_token` | string | 0–64 printable ASCII; empty string clears the token and disables auth |
-| `servo_mins` | string | Five comma-separated integers `0`–`180` (`head,neck,left,right,body`); setup AP only; must be sent with `servo_maxs` |
-| `servo_maxs` | string | Five comma-separated integers `0`–`180`; setup AP only; each value must be greater than the matching min |
+| `access_token` | string | 0–64 printable ASCII, no space at either end; empty string clears the token and disables auth |
+| `servo_mins` | integer array | Five integers `0`–`180` (`head, neck, left, right, body`); setup AP only; must be sent with `servo_maxs` |
+| `servo_maxs` | integer array | Five integers `0`–`180`; setup AP only; each value must be greater than the matching min |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR`; setup AP only; default `GRB` |
-| `oled_rotate_180` | integer | `0` or `1`; setup AP only; default `0` |
+| `oled_rotate_180` | boolean | Setup AP only; default `false` |
 
-At least one param required. Invalid or missing-all → **400**. Servo range params outside setup AP → **400** `servo setup only in AP mode`. RGB order outside setup AP → **400** `rgb setup only in AP mode`. OLED rotation outside setup AP → **400** `oled setup only in AP mode`. `reboot_required` is present and `true` only when the saved hostname differs from the one used at this boot.
+Leave out a field to keep its saved value. An empty object → **400** `send at least one setting`. A field this route does not know → **400** `unknown field <field>`. A field with the wrong type or out of range → **400** `invalid <field>` (servo ranges that overlap or exceed 180: `invalid servo_mins or servo_maxs`). Only one of `servo_mins` / `servo_maxs` → **400** `servo_mins and servo_maxs go together`. On any 400, nothing is saved. Outside setup AP mode, servo ranges → **400** `servo setup only in AP mode`, `rgb_order` → **400** `rgb setup only in AP mode`, `oled_rotate_180` → **400** `oled setup only in AP mode`. Replies carry `reboot_required` as in `GET /settings`.
 
 ### `PUT /settings/wifi`
 
@@ -219,11 +216,11 @@ curl -X PUT "http://tiny-engineer.local/settings/wifi" \
 | `ssid` | string | 1–32 chars; unique in the list |
 | `password` | string | 0–63 chars; omit to keep the saved password of a saved `ssid` |
 
-The list must hold 1 to 5 networks, so the robot always has one to try; factory reset clears WiFi. Body not a JSON array → **400** `body must be a JSON array of networks`. An entry that is not an object, or has a non-string `ssid` or `password` (including `null`) → **400** `each network needs a string ssid and an optional string password`. Empty → **400** `send at least one wifi network`. New SSID without `password` → **400** `password required for a new network`. Bad length, the same SSID twice, or more than 5 networks → **400** `invalid ssid or password, duplicate ssid, or more than 5 networks`. WiFi test failure in setup AP mode → **400** with an error such as `SSID not found`, `Auth failed`, or `Timeout`.
+The list must hold 1 to 5 networks, so the robot always has one to try; factory reset clears WiFi. No JSON body → **400** `send a JSON body with Content-Type: application/json`. Body not a JSON array → **400** `body must be a JSON array`. An entry that is not an object, or has a non-string `ssid` or `password` (including `null`) → **400** `each network needs a string ssid and an optional string password`. Empty → **400** `send at least one wifi network`. New SSID without `password` → **400** `password required for a new network`. Bad length, the same SSID twice, or more than 5 networks → **400** `invalid ssid or password, duplicate ssid, or more than 5 networks`. WiFi test failure in setup AP mode → **400** with an error such as `SSID not found`, `Auth failed`, or `Timeout`.
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No query params. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`; includes `reboot_required` when the boot hostname, loading screen, or saved WiFi differed from defaults before reset.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -319,78 +316,73 @@ curl -X POST http://tiny-engineer.local/test/led
 
 ### `POST /setup/servo`
 
-Setup AP only. Slowly move one servo, or all five to 90°, using the full **0–180°** electrical range (no saved safe-range clamp). ~25°/s (`SERVO_CALIB_SPEED_DEG_S`). Used by the setup wizard for seating printed parts at 90° and for range finding. Handler blocks until the move finishes. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup servo only in AP mode`.
+Setup AP only. Slowly move one servo, or all five to 90°, using the full **0–180°** electrical range (no saved safe-range clamp). ~25°/s (`SERVO_CALIB_SPEED_DEG_S`). Used by the setup wizard for seating printed parts at 90° and for range finding. Handler blocks until the move finishes. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup only in AP mode`.
 
-Either `all=90`, or `index` + `angle`.
+JSON body: either `{"all": 90}`, or `index` + `angle`.
 
-| Param | Type | Range |
+| Field | Type | Range |
 | --- | --- | --- |
 | `all` | integer | `90` (every joint to 90°) |
 | `index` | integer | `0`–`4` (required with `angle` when `all` is omitted) |
 | `angle` | number | `0`–`180` |
 
 ```bash
-curl -X POST "http://192.168.4.1/setup/servo?all=90"
-curl -X POST "http://192.168.4.1/setup/servo?index=0&angle=90"
+curl -X POST "http://192.168.4.1/setup/servo" -H "Content-Type: application/json" -d '{"all":90}'
+curl -X POST "http://192.168.4.1/setup/servo" -H "Content-Type: application/json" -d '{"index":0,"angle":90}'
 ```
 
 ```json
 { "ok": true, "setup": "servo", "index": 0, "angle": 90 }
 ```
 
-Wrong params return **400** and do not move any servo:
+Wrong fields return **400** and do not move any servo:
 
 | `error` | When |
 | --- | --- |
-| `setup servo only in AP mode` | Not in setup AP |
+| `setup only in AP mode` | Not in setup AP |
 | `invalid all` | `all` present but not `90` |
-| `missing index or angle` | Neither `all=90` nor both `index` and `angle` |
-| `invalid index` | Non-integer `index` |
-| `index out of range` | `index` outside `0`–`4` |
-| `invalid angle` | Non-numeric `angle` |
-| `angle out of range` | `angle` outside `0`–`180` |
+| `invalid index` | `index` missing, not an integer, or outside `0`–`4` |
+| `invalid angle` | `angle` missing, not a number, or outside `0`–`180` |
 
 After STA is up, use `POST /test/servo` (clamped to saved min/max).
 
 ### `POST /setup/led`
 
-Setup AP only. Holds the LED so provisioning dim-blue does not clobber the preview. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup led only in AP mode`.
+Setup AP only. Holds the LED so provisioning dim-blue does not clobber the preview. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup only in AP mode`.
 
-Logical **color** (`R` / `G` / `B`) lights firmware red/green/blue using the saved `rgb_order`, or `rgb_order` query if sent (wizard remap preview). Wire **byte** lights that WS2812 channel order-independent (`LED_COLOR_ORDER_RGB`, that channel 255). `byte=off` or neither `color` nor `byte` releases the hold and restores dim blue. Do not send `color` and `byte` together.
+Logical **color** (`R` / `G` / `B`) lights firmware red/green/blue using the saved `rgb_order`, or the `rgb_order` field if sent (wizard remap preview). Wire **byte** lights that WS2812 channel order-independent (`LED_COLOR_ORDER_RGB`, that channel 255). An empty body (neither `color` nor `byte`) releases the hold and restores dim blue. Do not send `color` and `byte` together.
 
-| Param | Type | Range |
+| Field | Type | Range |
 | --- | --- | --- |
 | `color` | string | `R`, `G`, or `B` (logical; uses saved or `rgb_order`) |
 | `rgb_order` | string | `RGB`, `RBG`, `GRB`, `GBR`, `BRG`, or `BGR` (optional with `color`) |
-| `byte` | string | `0`, `1`, `2`, or `off` (omit or `off` releases the hold) |
+| `byte` | integer | `0`, `1`, or `2` |
 
 ```bash
-curl -X POST "http://192.168.4.1/setup/led?color=R"
-curl -X POST "http://192.168.4.1/setup/led?color=R&rgb_order=GRB"
-curl -X POST "http://192.168.4.1/setup/led?byte=0"
-curl -X POST "http://192.168.4.1/setup/led?byte=off"
+curl -X POST "http://192.168.4.1/setup/led" -H "Content-Type: application/json" -d '{"color":"R","rgb_order":"GRB"}'
+curl -X POST "http://192.168.4.1/setup/led" -H "Content-Type: application/json" -d '{"byte":0}'
+curl -X POST "http://192.168.4.1/setup/led"
 ```
 
 ```json
 { "ok": true, "setup": "led", "color": "R" }
 ```
 
-Wrong params return **400** and do not change hold state except `off` / omitted light params:
+Wrong fields return **400** and do not change the hold:
 
 | `error` | When |
 | --- | --- |
-| `setup led only in AP mode` | Not in setup AP |
-| `color and byte conflict` | Both `color` and a numeric `byte` present |
+| `setup only in AP mode` | Not in setup AP |
+| `color and byte conflict` | Both `color` and `byte` present |
 | `invalid color` | `color` not `R`, `G`, or `B` |
 | `invalid rgb_order` | `rgb_order` present but not a valid permutation |
-| `invalid byte` | `byte` present but not an integer and not `off` |
-| `byte out of range` | Integer `byte` outside `0`–`2` |
+| `invalid byte` | `byte` not an integer `0`–`2` |
 
-Save the labeled permutation with `POST /settings?rgb_order=GRB` (setup AP only). The saved order applies immediately to animation colors, boot status, halt blinks, and `POST /test/led`.
+Save the labeled permutation with `POST /settings` `{"rgb_order":"GRB"}` (setup AP only). The saved order applies immediately to animation colors, boot status, halt blinks, and `POST /test/led`.
 
 ### `POST /setup/audio`
 
-Setup AP only. Plays `welcome.wav` from LittleFS (`playWelcome()`, ~2.7 s). Same speaker gain as settings `volume`. No query params. Does **not** require Wi-Fi credentials. Handler blocks until playback finishes. Outside provisioning → **400** `setup audio only in AP mode`. Missing/unreadable WAV → **500** `welcome playback failed`.
+Setup AP only. Plays `welcome.wav` from LittleFS (`playWelcome()`, ~2.7 s). Same speaker gain as settings `volume`. No body. Does **not** require Wi-Fi credentials. Handler blocks until playback finishes. Outside provisioning → **400** `setup only in AP mode`. Missing/unreadable WAV → **500** `welcome playback failed`.
 
 ```bash
 curl -X POST "http://192.168.4.1/setup/audio"
@@ -404,16 +396,16 @@ After STA is up, use `POST /test/audio/bell` (or `/test/audio` for tones).
 
 ### `POST /setup/oled`
 
-Setup AP only. Preview OLED 180° rotation without saving. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup oled only in AP mode`.
+Setup AP only. Preview OLED 180° rotation without saving. Does **not** require Wi-Fi credentials. Outside provisioning → **400** `setup only in AP mode`.
 
-`rotate_180=1` applies `setRotation(2)` and draws `THIS WAY UP`. `rotate_180=0` applies `setRotation(0)` and draws the same test. Omit `rotate_180` to restore saved rotation and the provisioning join-AP text.
+`{"rotate_180": true}` applies `setRotation(2)` and draws `THIS WAY UP`. `{"rotate_180": false}` applies `setRotation(0)` and draws the same test. An empty body restores the saved rotation and the provisioning join-AP text.
 
-| Param | Type | Range |
+| Field | Type | Range |
 | --- | --- | --- |
-| `rotate_180` | integer | `0` or `1` (omit to restore provisioning text) |
+| `rotate_180` | boolean | Leave out to restore the provisioning text |
 
 ```bash
-curl -X POST "http://192.168.4.1/setup/oled?rotate_180=1"
+curl -X POST "http://192.168.4.1/setup/oled" -H "Content-Type: application/json" -d '{"rotate_180":true}'
 curl -X POST "http://192.168.4.1/setup/oled"
 ```
 
@@ -421,41 +413,38 @@ curl -X POST "http://192.168.4.1/setup/oled"
 { "ok": true, "setup": "oled", "rotate_180": true }
 ```
 
-Wrong params return **400**:
+Wrong fields return **400**:
 
 | `error` | When |
 | --- | --- |
-| `setup oled only in AP mode` | Not in setup AP |
-| `invalid rotate_180` | `rotate_180` present but not `0` or `1` |
+| `setup only in AP mode` | Not in setup AP |
+| `invalid rotate_180` | `rotate_180` present but not a boolean |
 
-Save with `POST /settings?oled_rotate_180=1` (setup AP only). The saved value applies immediately and on the next boot.
+Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved value applies immediately and on the next boot.
 
 ### `POST /test/servo`
 
-Smoothly move one servo to an angle at **~140°/s** (`SERVO_MAX_SPEED_DEG_S`) from its last commanded position. Query params required. Handler blocks until the move finishes.
+Smoothly move one servo to an angle at **~140°/s** (`SERVO_MAX_SPEED_DEG_S`) from its last commanded position. JSON body required. Handler blocks until the move finishes.
 
-| Param | Type | Range |
+| Field | Type | Range |
 | --- | --- | --- |
 | `index` | integer | `0`–`4` |
 | `angle` | number | `0`–`180` |
 
 ```bash
-curl -X POST "http://tiny-engineer.local/test/servo?index=0&angle=90"
+curl -X POST "http://tiny-engineer.local/test/servo" -H "Content-Type: application/json" -d '{"index":0,"angle":90}'
 ```
 
 ```json
 { "ok": true, "test": "servo", "index": 0, "angle": 90 }
 ```
 
-Wrong params return **400** and do not move any servo:
+Wrong fields return **400** and do not move any servo:
 
 | `error` | When |
 | --- | --- |
-| `missing index or angle` | Either query param absent |
-| `invalid index` | Non-integer `index` (e.g. `abc`, `1x`) |
-| `index out of range` | `index` outside `0`–`4` |
-| `invalid angle` | Non-numeric `angle` |
-| `angle out of range` | `angle` outside `0`–`180` |
+| `invalid index` | `index` missing, not an integer, or outside `0`–`4` |
+| `invalid angle` | `angle` missing, not a number, or outside `0`–`180` |
 
 Assembled robot: firmware clamps to the NVS min/max from setup (stock defaults in [robot-movement.md](robot-movement.md)); this route still accepts 0–180 and clamps. For unclamped assembly moves, use setup AP `POST /setup/servo`.
 
@@ -591,11 +580,11 @@ Errors arrive before any audio plays:
 
 | Status | Body | When |
 | --- | --- | --- |
-| `400` | `{"ok":false,"error":"..."}` | Bad `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/anim`, or `/play` params (see tables above) |
+| `400` | `{"ok":false,"error":"..."}` | Bad body or fields on `/settings`, `/settings/wifi`, `/test/servo` or `/setup/*`, or bad `/anim` or `/play` params (see tables above) |
 | `401` | `{"ok":false,"error":"unauthorized"}` | Access token configured and `Authorization: Bearer` missing or wrong |
 | `404` | `{"ok":false,"error":"not found"}` | Unknown path |
 | `415` | `{"ok":false,"error":"..."}` | `/play` body is not a supported WAV |
-| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on a `/test/*`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/settings`, `/settings/reset`, `/settings/wifi`, `/anim`, `/play`, or `/auth` path |
+| `405` | `{"ok":false,"error":"method not allowed"}` | Wrong method on any known path, web panel pages included |
 
 Test routes are **POST**. GET/prefetch would move hardware. `/anim` allows **GET** (read) and **POST** (set). `/auth` is **GET** only and always public.
 

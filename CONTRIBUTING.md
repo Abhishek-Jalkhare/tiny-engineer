@@ -60,7 +60,7 @@ python3 scripts/check_pcb.py
 
 **Firmware.** `pio run` plus native tests when you touch settings validation. Pin changes update [`include/pins.h`](include/pins.h) **and** [`docs/hardware/`](docs/hardware/) in the same PR.
 
-**HTTP / API.** Same PR must update the HTML index ([`ui/index.html`](ui/index.html)) and [`docs/api.md`](docs/api.md). If the route list, params, or boot URLs changed, also update [`README.md`](README.md) and [`docs/hardware/testing.md`](docs/hardware/testing.md). See [.cursor/rules/sync-api-endpoints.mdc](.cursor/rules/sync-api-endpoints.mdc).
+**HTTP / API.** Same PR must update the web UI API page ([`ui/src/views/ApiReference.tsx`](ui/src/views/ApiReference.tsx)) and [`docs/api.md`](docs/api.md). If the route list, params, or boot URLs changed, also update [`README.md`](README.md) and [`docs/hardware/testing.md`](docs/hardware/testing.md). See [.cursor/rules/sync-api-endpoints.mdc](.cursor/rules/sync-api-endpoints.mdc).
 
 **Settings.** Follow the layer checklist in [docs/settings.md](docs/settings.md). Never log the raw `access_token` (set/unset only).
 

@@ -19,7 +19,7 @@ def npm(*args):
 
 
 def newest_source_mtime():
-    sources = [ui_dir / "index.html", ui_dir / "vite.config.js", ui_dir / "package.json", ui_dir / "package-lock.json"]
+    sources = [ui_dir / name for name in ("index.html", "vite.config.ts", "tsconfig.json", "package.json", "package-lock.json")]
     sources += [path for path in (ui_dir / "src").rglob("*") if path.is_file()]
     return max(path.stat().st_mtime for path in sources)
 
@@ -37,7 +37,7 @@ if not installed.is_file() or installed.stat().st_mtime < (ui_dir / "package-loc
 npm("run", "build")
 
 page = (ui_dir / "dist" / "index.html").read_bytes()
-# mtime=0 keeps the bytes identical for identical sources, so an unchanged UI does not rebuild index_page.cpp.
+# mtime=0 keeps the bytes identical for identical sources, so an unchanged UI does not rebuild routes.cpp.
 packed = gzip.compress(page, compresslevel=9, mtime=0)
 rows = ",\n".join(
     "  " + ", ".join(f"0x{byte:02x}" for byte in packed[offset:offset + 16])

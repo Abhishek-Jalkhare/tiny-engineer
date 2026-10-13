@@ -278,6 +278,10 @@ const char* wifiIpText() {
   return ipText;
 }
 
+String wifiMdnsHostname() {
+  return String(settingsHostname()) + ".local";
+}
+
 const char* wifiApSsid() {
   return apSsid;
 }

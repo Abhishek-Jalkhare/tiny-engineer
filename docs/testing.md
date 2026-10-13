@@ -28,7 +28,7 @@ The `expression-demo` environment builds a separate OLED-only application withou
 
 ## Web UI
 
-The control panel in [`ui/`](../ui/) is linted with [html-validate](https://html-validate.org/), ESLint, [Stylelint](https://stylelint.io/) (`stylelint-config-standard`) and Prettier. Node 20.19+ on 20.x, or 22.12+.
+The control panel in [`ui/`](../ui/) (TypeScript and Preact) is type-checked with `tsc` and linted with ESLint, [Stylelint](https://stylelint.io/) (`stylelint-config-standard`) and Prettier. Node 20.19+ on 20.x, or 22.12+.
 
 ```bash
 npm ci --prefix ui
@@ -37,7 +37,7 @@ npm test --prefix ui
 npm run format --prefix ui   # apply Prettier
 ```
 
-`npm test` runs [Vitest](https://vitest.dev/) in jsdom: each test loads the real `index.html`, imports the UI modules, and drives them against a fake robot that stubs `fetch` and records requests ([`ui/test/robot.js`](../ui/test/robot.js)). The tests cover the auth gate, config saving and access-token handling, the servo page range hint, and the setup wizard (step order, what each step saves, step-only calibration moves, LED order validation).
+`npm test` runs [Vitest](https://vitest.dev/) in jsdom: each test renders the app with [Testing Library](https://testing-library.com/docs/preact-testing-library/intro/) and drives it against a fake robot that stubs `fetch` and records requests ([`ui/test/robot.tsx`](../ui/test/robot.tsx)). The tests cover the auth gate, config saving and access-token handling, the staged WiFi network list, the servo page range hint, and the setup wizard (step order, what each step saves, step-only calibration moves, LED order validation).
 
 ## Packages
 

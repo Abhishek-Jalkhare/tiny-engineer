@@ -11,7 +11,7 @@ Tiny Engineer is an open-source ESP32-C3 Wi-Fi desk robot: 3D-printed mechanics,
 | Path | Role |
 | --- | --- |
 | `src/`, `include/`, `lib/`, `data/` | Firmware (PlatformIO) |
-| `ui/` | Web control panel (Vite + ES modules); `pio run` builds it into one minified page and embeds it gzipped in the firmware |
+| `ui/` | Web control panel (Vite, TypeScript, Preact); `pio run` builds it into one minified page and embeds it gzipped in the firmware |
 | `packages/` | HTTP / hook CLIs (Cursor, Antigravity, Claude Code, …) — scope `integrations` |
 | `skills/` | Agent skills shared by Claude Code, Cursor and Antigravity — scope `integrations` |
 | `3d_models/` | CAD and printables (CERN-OHL-S) |
@@ -55,12 +55,12 @@ Significant: logic, types, APIs, headers, firmware under `src/` / `include/` / `
 
 When adding, removing, or changing method, path, or query params of any HTTP route, update in the **same** change:
 
-1. **HTML index** — [`ui/index.html`](ui/index.html): endpoint table and param lists for `/anim`, `/settings`, `/test/servo`
+1. **Web UI API page** — [`ui/src/views/ApiReference.tsx`](ui/src/views/ApiReference.tsx): endpoint table and param lists for `/anim`, `/settings`, `/test/servo`
 2. **API reference** — [`docs/api.md`](docs/api.md)
 3. **Summaries** — if the endpoint list, params, or boot URLs changed: [`README.md`](README.md) and [`docs/hardware/testing.md`](docs/hardware/testing.md)
-4. **405 paths** — if needed: `isHttpTestPath()` / `handleNotFound` in `src/http/`
+4. **Route table** — add the route to `kRoutes` in [`src/http/routes.cpp`](src/http/routes.cpp) with its access rule. 404 and 405 answers come from that table
 
-HTML index: one-line route descriptions only (except supported-parameter lists). Param values must match `docs/api.md` exactly.
+Web UI API page: one-line route descriptions only (except supported-parameter lists). Param values must match `docs/api.md` exactly.
 
 ## Commits
 
@@ -76,6 +76,8 @@ Breaking rules, SemVer mapping, and examples: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 - **Firmware** — `pio run`; also `pio test -e native` when touching settings validation. Pin changes update `include/pins.h` **and** `docs/hardware/` together.
 - **Settings** — layer checklist in [docs/settings.md](docs/settings.md). Never log raw `access_token`.
+- **HTTP routes** — add the route to `kRoutes` in `src/http/routes.cpp` with its `Access` level; `Refusal::check` enforces it. Routes with fields read a JSON body through `readJsonBody`; only `POST /anim` (`name`) and `/play` take other input, because the agent packages depend on them.
+- **Web UI** — Preact + TypeScript in `ui/src`, plain `preact` / `preact/hooks` imports (no compat). One component per file; shared components in `ui/src/components`, helpers in `ui/src/lib`. `npm run lint --prefix ui` runs `tsc` and type-checked ESLint, which forbids `.then` / `.catch` chains (use try/catch). Keep markup and class names when refactoring: the CSS styles them by class and id.
 - **Integrations** — add/extend package tests; prefer short timeouts and ignore network errors so a missing robot does not stall the agent.
 - **CAD** — edit `.f3d` **and** export affected `3mf`. CERN-OHL-S. Do not swap `AiEmblem.3mf` as branding. New parts: [docs/3d/adding-parts.md](docs/3d/adding-parts.md).
 - **Mods** — optional add-ons under `mods/<mod_name>/`. Models live in `3d_models/{cad,parts}/`. Commit `type(mods)` and name the mod in the summary. `feat(mods)` / `fix(mods)` do not version stock CAD. See [mods/README.md](mods/README.md).

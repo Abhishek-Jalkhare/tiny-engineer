@@ -73,6 +73,12 @@ bool settingsValidateAccessToken(const char* accessToken) {
     return false;
   }
 
+  // HTTP clients and the server trim header values, so a token that starts or
+  // ends with a space could never match the Authorization header.
+  if (len > 0 && (accessToken[0] == ' ' || accessToken[len - 1] == ' ')) {
+    return false;
+  }
+
   for (size_t i = 0; i < len; i++) {
     const unsigned char c =
       static_cast<unsigned char>(accessToken[i]);
@@ -103,21 +109,9 @@ bool settingsValidateWifiPassword(const char* wifiPassword) {
   return strlen(wifiPassword) <= SETTINGS_WIFI_PASSWORD_MAX_LEN;
 }
 
-bool settingsValidateServoRanges(
-  const uint8_t* servoMins,
-  const uint8_t* servoMaxs
-) {
-  if (servoMins == nullptr || servoMaxs == nullptr) {
-    return false;
-  }
-
+bool ServoRanges::valid() const {
   for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
-    if (servoMins[i] > SETTINGS_SERVO_ANGLE_MAX ||
-        servoMaxs[i] > SETTINGS_SERVO_ANGLE_MAX) {
-      return false;
-    }
-
-    if (servoMins[i] >= servoMaxs[i]) {
+    if (maxs[i] > SETTINGS_SERVO_ANGLE_MAX || mins[i] >= maxs[i]) {
       return false;
     }
   }
@@ -136,4 +130,60 @@ bool settingsValidateRgbOrder(const char* rgbOrder) {
          strcmp(rgbOrder, "GBR") == 0 ||
          strcmp(rgbOrder, "BRG") == 0 ||
          strcmp(rgbOrder, "BGR") == 0;
+}
+
+const char* SettingsPatch::invalidField() const {
+  if (sleepTimeoutMin && !settingsValidateSleepTimeout(*sleepTimeoutMin)) {
+    return "sleep_timeout";
+  }
+
+  if (hostname != nullptr && !settingsValidateHostname(hostname)) {
+    return "hostname";
+  }
+
+  if (volume && !settingsValidateVolume(*volume)) {
+    return "volume";
+  }
+
+  if (continuousTimeoutMin && !settingsValidateContinuousTimeout(*continuousTimeoutMin)) {
+    return "continuous_timeout";
+  }
+
+  if (loading != nullptr && !settingsValidateLoading(loading)) {
+    return "loading";
+  }
+
+  if (eyesStyle != nullptr && !settingsValidateEyesStyle(eyesStyle)) {
+    return "eyes_style";
+  }
+
+  if (accessToken != nullptr && !settingsValidateAccessToken(accessToken)) {
+    return "access_token";
+  }
+
+  if (servoRanges && !servoRanges->valid()) {
+    return "servo_mins or servo_maxs";
+  }
+
+  if (rgbOrder != nullptr && !settingsValidateRgbOrder(rgbOrder)) {
+    return "rgb_order";
+  }
+
+  return nullptr;
+}
+
+const char* SettingsPatch::setupOnlyStep() const {
+  if (servoRanges) {
+    return "servo";
+  }
+
+  if (rgbOrder != nullptr) {
+    return "rgb";
+  }
+
+  if (oledRotate180) {
+    return "oled";
+  }
+
+  return nullptr;
 }
