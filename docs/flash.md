@@ -16,17 +16,24 @@ The stock image includes app firmware and LittleFS (WAV audio). The site ships e
 
 ### Done when (web path)
 
+Flash with the ESP32-C3-Zero **seated on the main control board** (PCA9685 present). A bare module alone is not enough for these checks.
+
 - Onboard RGB is **dim green** during init (not a repeating red blink).
-- One servo moves: join setup AP `TinyEngineer-XXXX`, open `http://192.168.4.1/config`, press **Move all to 90°**.
+- Setup AP `TinyEngineer-XXXX` appears; open `http://192.168.4.1/config`, press **Move all to 90°** (one servo moves).
 
 Fatal init hangs and blinks the RGB **red**. Count flashes before the long gap:
 
 | Blinks | Meaning |
 | --- | --- |
-| 1 | PCA9685 not found on I2C `0x40` — wiring / address |
+| 1 | PCA9685 not found on I2C `0x40` — ESP32 not on main board, or wiring / address |
 | 2 | MAX98357A / I2S init failed |
 
 Details: [hardware/testing.md — boot-failure blink codes](hardware/testing.md#boot-failure-blink-codes).
+
+### If something looks wrong
+
+- **Bare ESP32-C3-Zero only:** the installer can still succeed. Firmware then halts looking for the PCA9685 (1 blink, ~3 s gap). No `TinyEngineer-XXXX` Wi‑Fi until the module is on the main board. That is expected, not a bad flash.
+- **Serial monitor:** older builds may print Preferences `NOT_FOUND` on first boot (empty settings). That is not a failed flash. With `serial_log` off (default), most boot lines stay quiet. A fatal halt always prints `HALT: …` and `LED blinks: N` — see [boot-failure blink codes](hardware/testing.md#boot-failure-blink-codes).
 
 **Stop here.** Do not complete the setup wizard (home Wi-Fi, ranges, OLED, LED, speaker) until the robot is assembled — [assembly.md §20](3d/assembly.md#20-setup-wizard-and-first-boot-on-wi-fi). Then return to [getting-started](getting-started.md) and assemble.
 
@@ -147,8 +154,8 @@ Do **not** reuse current-`main` offsets for an old tag.
 
 ### Done when (PlatformIO path)
 
-Same checks as [Done when (web path)](#done-when-web-path). With serial:
+Same checks as [Done when (web path)](#done-when-web-path) (ESP32 on the main board). With serial:
 
-- Monitor shows a normal boot (`TINY ENGINEER` … PCA9685 found … no hang)
+- Monitor shows a normal boot (`TINY ENGINEER` … `PCA9685 found` … no hang). Preferences / empty NVS messages are not a flash failure.
 - Onboard RGB is **dim green** during init
 - One servo moves via **Move all to 90°** or `POST /test/servo`
