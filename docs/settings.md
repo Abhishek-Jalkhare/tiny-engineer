@@ -12,7 +12,7 @@ Follow the same pattern for a new setting.
 
 | Choice | Convention |
 | --- | --- |
-| Storage | NVS under namespace `te`; short key name (≤15 chars for Preferences) |
+| Storage | NVS under namespace `te`; short key name (≤15 chars for Preferences). First boot may create an empty `te` namespace so Preferences does not ERROR on a missing namespace; values stay at defaults until a save |
 | RAM | One `SettingsValues` struct (`g_settings`) filled by `initSettings()`; callers use getters |
 | Update API | `saveSettings(const SettingsPatch&)`: only the fields the patch sets change, and only changed keys are written to NVS |
 | HTTP | JSON object body on `POST /settings`; at least one field required |

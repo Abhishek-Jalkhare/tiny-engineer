@@ -51,7 +51,9 @@ void initSettings() {
   g_wifiNetworks.clear();
   bool legacyWifi = false;
 
-  if (g_settingsPrefs.begin(kNs, true)) {
+  // RW so a missing namespace is created without Preferences NOT_FOUND ERROR.
+  // Boot only reads (get*/isKey); saves use openForWrite in nvs.cpp.
+  if (g_settingsPrefs.begin(kNs, false)) {
     g_settings.load();
     legacyWifi = loadWifiNetworks();
     g_settingsPrefs.end();

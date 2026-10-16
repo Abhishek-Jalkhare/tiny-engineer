@@ -12,6 +12,11 @@ constexpr size_t kServoRangesLen = SETTINGS_SERVO_COUNT * 2;
 
 template <size_t N>
 void loadText(char (&dest)[N], const char* key, bool (*valid)(const char*)) {
+  // isKey first: Preferences getString logs ERROR when the key is missing.
+  if (!g_settingsPrefs.isKey(key)) {
+    return;
+  }
+
   const String value = g_settingsPrefs.getString(key, dest);
 
   if (valid(value.c_str())) {
@@ -20,6 +25,10 @@ void loadText(char (&dest)[N], const char* key, bool (*valid)(const char*)) {
 }
 
 void loadMinutes(uint32_t& dest, const char* key, bool (*valid)(uint32_t)) {
+  if (!g_settingsPrefs.isKey(key)) {
+    return;
+  }
+
   const uint32_t value = g_settingsPrefs.getUInt(key, dest);
 
   if (valid(value)) {
@@ -33,36 +42,50 @@ void SettingsValues::load() {
   loadMinutes(sleepTimeoutMin, kKeySleep, settingsValidateSleepTimeout);
   loadText(hostname, kKeyHost, settingsValidateHostname);
 
-  const uint32_t storedVolume = g_settingsPrefs.getUInt(kKeyVolume, volume);
+  if (g_settingsPrefs.isKey(kKeyVolume)) {
+    const uint32_t storedVolume = g_settingsPrefs.getUInt(kKeyVolume, volume);
 
-  if (storedVolume <= UINT8_MAX && settingsValidateVolume(storedVolume)) {
-    volume = static_cast<uint8_t>(storedVolume);
+    if (storedVolume <= UINT8_MAX && settingsValidateVolume(storedVolume)) {
+      volume = static_cast<uint8_t>(storedVolume);
+    }
   }
 
-  welcome = g_settingsPrefs.getBool(kKeyWelcome, welcome);
-  serialLog = g_settingsPrefs.getBool(kKeySerialLog, serialLog);
+  if (g_settingsPrefs.isKey(kKeyWelcome)) {
+    welcome = g_settingsPrefs.getBool(kKeyWelcome, welcome);
+  }
+
+  if (g_settingsPrefs.isKey(kKeySerialLog)) {
+    serialLog = g_settingsPrefs.getBool(kKeySerialLog, serialLog);
+  }
+
   loadMinutes(continuousTimeoutMin, kKeyContTo, settingsValidateContinuousTimeout);
   loadText(loading, kKeyLoading, settingsValidateLoading);
   loadText(eyesStyle, kKeyEyesStyle, settingsValidateEyesStyle);
   loadText(accessToken, kKeyAccessTok, settingsValidateAccessToken);
 
-  uint8_t blob[kServoRangesLen] = {};
+  if (g_settingsPrefs.isKey(kKeyServoRanges)) {
+    uint8_t blob[kServoRangesLen] = {};
 
-  if (g_settingsPrefs.getBytes(kKeyServoRanges, blob, kServoRangesLen) == kServoRangesLen) {
-    ServoRanges stored{};
+    if (g_settingsPrefs.getBytes(kKeyServoRanges, blob, kServoRangesLen) ==
+        kServoRangesLen) {
+      ServoRanges stored{};
 
-    for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
-      stored.mins[i] = blob[i * 2];
-      stored.maxs[i] = blob[i * 2 + 1];
-    }
+      for (size_t i = 0; i < SETTINGS_SERVO_COUNT; i++) {
+        stored.mins[i] = blob[i * 2];
+        stored.maxs[i] = blob[i * 2 + 1];
+      }
 
-    if (stored.valid()) {
-      servoRanges = stored;
+      if (stored.valid()) {
+        servoRanges = stored;
+      }
     }
   }
 
   loadText(rgbOrder, kKeyRgbOrder, settingsValidateRgbOrder);
-  oledRotate180 = g_settingsPrefs.getBool(kKeyOledRot, oledRotate180);
+
+  if (g_settingsPrefs.isKey(kKeyOledRot)) {
+    oledRotate180 = g_settingsPrefs.getBool(kKeyOledRot, oledRotate180);
+  }
 }
 
 namespace {
