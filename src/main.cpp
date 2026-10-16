@@ -112,7 +112,7 @@ void setup() {
       "Init failed"
     );
 
-    haltWithRgbCode(RGB_CODE_I2S);
+    haltWithRgbCode(RGB_CODE_I2S, "I2S / MAX98357A init failed");
   }
 
   serialLogPrintln("I2S OK");

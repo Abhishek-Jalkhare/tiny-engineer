@@ -39,9 +39,9 @@ flashes before the long gap identifies the subsystem:
 | 2 | MAX98357A / I2S init failed |
 
 Each flash is 300 ms on, 300 ms off; the gap between repeats is 3 s, so the start of a
-cycle is easy to find. Serial carries the same message, but the blink code is readable
-with no cable attached — and with `serial_log` off (the default) the serial line is
-silent, which makes the LED the only signal a first-boot board gives you.
+cycle is easy to find. Before blinking, firmware always prints `HALT: …` and
+`LED blinks: N` on USB serial (115200), even when `serial_log` is off. The blink
+code remains the no-cable signal.
 
 ## Expected boot sequence
 

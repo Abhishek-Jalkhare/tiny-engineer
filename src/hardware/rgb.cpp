@@ -332,7 +332,14 @@ void updateRgb(uint32_t nowMs) {
   applyTransition(nowMs);
 }
 
-void haltWithRgbCode(uint8_t blinks) {
+void haltWithRgbCode(uint8_t blinks, const char* reason) {
+  Serial.println();
+  Serial.print("HALT: ");
+  Serial.println(reason ? reason : "unknown");
+  Serial.print("LED blinks: ");
+  Serial.println(blinks);
+  Serial.flush();
+
   while (true) {
     for (uint8_t i = 0; i < blinks; i++) {
       setRgb(64, 0, 0);
