@@ -35,13 +35,13 @@ export function RobotProvider({ children }: { children: ComponentChildren }) {
   const { setStatus } = useStatus();
   const [gate, setGate] = useState<Gate>("booting");
   const [provisioning, setProvisioning] = useState(false);
-  const [wifiConfigured, setWifiConfigured] = useState(false);
+  const [linkMode, setLinkMode] = useState<string>("");
   const [version, setVersion] = useState<string | null>(null);
   const [settings, setSettings] = useState<Settings | null>(null);
 
   const applySettings = useCallback((next: Settings) => {
     setSettings(next);
-    setWifiConfigured(next.wifi_configured);
+    setLinkMode(next.link_mode);
   }, []);
 
   // GET /settings also tells whether the current token is accepted.
@@ -95,7 +95,7 @@ export function RobotProvider({ children }: { children: ComponentChildren }) {
       if (auth) {
         setVersion(auth.version);
         setProvisioning(auth.provisioning);
-        setWifiConfigured(auth.wifi_configured);
+        setLinkMode(auth.link_mode);
       }
 
       if (auth?.required && !token.get()) {
@@ -125,10 +125,12 @@ export function RobotProvider({ children }: { children: ComponentChildren }) {
     })();
   }, [loadSettings, setStatus]);
 
+  const provisioned = linkMode === "wifi" || linkMode === "usb";
+
   const value = useMemo<RobotApi>(
     () => ({
       gate,
-      inSetup: provisioning || !wifiConfigured,
+      inSetup: provisioning || !provisioned,
       version,
       settings,
       applySettings,
@@ -136,10 +138,10 @@ export function RobotProvider({ children }: { children: ComponentChildren }) {
       showRebootGate: () => setGate("reboot"),
       leaveSetup: () => {
         setProvisioning(false);
-        setWifiConfigured(true);
+        setLinkMode((prev) => (prev === "usb" ? "usb" : "wifi"));
       },
     }),
-    [gate, provisioning, wifiConfigured, version, settings, applySettings, unlock],
+    [gate, provisioning, provisioned, version, settings, applySettings, unlock],
   );
 
   return <RobotContext.Provider value={value}>{children}</RobotContext.Provider>;

@@ -15,6 +15,9 @@ constexpr uint32_t SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN = 5;
 constexpr const char* SETTINGS_DEFAULT_LOADING = "progress";
 constexpr const char* SETTINGS_DEFAULT_EYES_STYLE = "classic";
 constexpr const char* SETTINGS_DEFAULT_ACCESS_TOKEN = "";
+// Empty = unprovisioned. "wifi" or "usb" after the setup wizard finishes.
+constexpr const char* SETTINGS_DEFAULT_LINK_MODE = "";
+constexpr size_t SETTINGS_LINK_MODE_MAX_LEN = 8;
 
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MIN_MIN = 1;
 constexpr uint32_t SETTINGS_SLEEP_TIMEOUT_MAX_MIN = 1440;
@@ -53,6 +56,7 @@ struct SettingsPatch {
   const char* loading = nullptr;
   const char* eyesStyle = nullptr;
   const char* accessToken = nullptr;
+  const char* linkMode = nullptr;
   std::optional<ServoRanges> servoRanges;
   const char* rgbOrder = nullptr;
   std::optional<bool> oledRotate180;
@@ -80,6 +84,18 @@ const char* settingsAccessToken();
 bool settingsAccessTokenSet();
 const WifiNetworkList& settingsWifiNetworks();
 bool settingsWifiConfigured();
+const char* settingsLinkMode();
+// True after setup chose Wi-Fi or USB-only (migrated devices with saved nets count).
+bool settingsProvisioned();
+bool settingsValidateLinkMode(const char* linkMode);
+// Pure gate for tests: nullptr if the patch may change link_mode, else a short error.
+// Setup AP may set mode; outside AP only a no-op (same value) is allowed.
+const char* settingsLinkModePatchDenied(
+  const char* patchMode,
+  const char* currentMode,
+  bool provisioned,
+  bool inSetupAp
+);
 float settingsServoMin(int index);
 float settingsServoMax(int index);
 const char* settingsRgbOrder();
