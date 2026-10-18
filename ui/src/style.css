@@ -190,12 +190,37 @@ nav a.active {
   top: 0.75rem;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   width: min(calc(100% - 2rem), 42rem);
   z-index: 20;
   padding: 0.65rem 1rem;
   border-radius: 0.4rem;
   font-size: 0.9rem;
   box-shadow: 0 0.25rem 0.75rem rgb(0 0 0 / 12%);
+}
+
+#status > [role="status"] {
+  flex: 1;
+  min-width: 0;
+}
+
+#status > button {
+  flex-shrink: 0;
+  margin: -0.25rem -0.35rem -0.25rem 0;
+  padding: 0.25rem 0.45rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+#status > button:hover {
+  opacity: 1;
 }
 
 #status.loading {
