@@ -26,6 +26,22 @@ Two ways to get the mechanical set (same place in the build path):
 
 Assembly uses **M2 screws** that thread directly into the printed PLA/PETG — no glue, no heat-set inserts. Easy to dismount and modify later. Buyer cart (electronics + screw qty + supply): [docs/shopping.md](../docs/shopping.md). Overall build order: [docs/getting-started.md](../docs/getting-started.md). Mechanical procedure: [docs/3d/assembly.md](../docs/3d/assembly.md). Per-step lengths: [screw list](#screws) below.
 
+### LampDiffuser (thin walls)
+
+`LampDiffuser` is **intentionally thin** (~one extrusion width on a **0.4 mm** nozzle, ~0.38 mm) so light passes through. Print in **white or translucent** PLA (PETG is fine). Do **not** scale the model.
+
+**Symptoms if the slicer skips it:** empty-layer errors, missing walls in preview, or a thin-wall warning.
+
+UI labels move between versions — search the setting name rather than hunting menus.
+
+| Slicer | Fix |
+| --- | --- |
+| **Orca / Bambu / Anycubic Next** (and other Orca-based forks) | Process settings → search **wall generator** → set **Arachne** (not Classic). Re-slice. A dotted single line in preview is correct: Arachne fitting one thin pass into the wall. |
+| **PrusaSlicer** | Perimeter generator → **Arachne**. Older builds: enable **Detect thin walls**. |
+| **Cura** (5+) | Enable **Print Thin Walls**. If the wall still vanishes, keep wall line width at or below the modeled thickness and do not force two walls on this geometry. |
+
+Ordering from a bureau instead? Thin-wall disclaimer notes: [order printed parts](../docs/3d/order-parts.md).
+
 ### Screws
 
 **Spec:** M2 thread-forming (self-tapping) screws for plastic, **pan-head or button-head** — heads normally sit on the plastic surface. `BottomCover` has recessed head pockets; use heads no larger than **4.0 mm diameter × 2.0 mm high** so the underside rests flat. CAD default pilot is **2.1 mm** (Fusion user parameter `screw_thread_diameter`); if your `ScrewSizingTest` winner differs, re-export at that diameter before printing structural parts. Details: [M2 screw holes](../docs/3d/parametric-design.md#m2-screw-holes).
@@ -72,7 +88,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 | `Bell.3mf` | Service bell |
 | `LampBase.3mf` | Desk lamp base |
 | `LampCap.3mf` | Lamp cap |
-| `LampDiffuser.3mf` | Lamp diffuser |
+| `LampDiffuser.3mf` | Lamp diffuser — thin walls; see [LampDiffuser (thin walls)](#lampdiffuser-thin-walls) |
 | `LampButton.3mf` | Lamp button |
 | `Mug.3mf` | Mug |
 | `Coffee.3mf` | Coffee fill |

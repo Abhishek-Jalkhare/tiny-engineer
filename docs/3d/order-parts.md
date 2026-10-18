@@ -18,7 +18,7 @@ Any FDM bureau that accepts STL or STEP can work. **[PCBWay 3D printing](https:/
 | --- | --- |
 | `PartsSetA.stl` (or `.step`) | Originally silk copper; customize the color if you like |
 | `PartsSetB.stl` (or `.step`) | Originally black, including `BottomCover` and the updated `Chair`; customize the color if you like |
-| `LampDiffuser.stl` (or `.step`) | White or translucent. Intentionally thin so light passes through; may fail the provider’s minimum wall-thickness check — expect to accept a wall-thickness / damage-risk disclaimer if asked |
+| `LampDiffuser.stl` (or `.step`) | White or translucent. Intentionally thin so light passes through; may fail the provider’s minimum wall-thickness check — expect to accept a wall-thickness / damage-risk disclaimer if asked. Home printers: [LampDiffuser thin-wall slicer tips](../../3d_models/README.md#lampdiffuser-thin-walls) |
 
 The largest black aggregate (SG90) is approximately **235 × 332 mm**. Services can arrange the parts for their machines; on a smaller home print bed, use the individual files instead.
 
@@ -42,7 +42,7 @@ UI labels change; follow the outcomes, not exact button names. The flow below ma
 2. Start a new **3D printing / FDM** quote.
 3. Upload the three files from the matching `stl/` (or `step/`) folder: `PartsSetA`, `PartsSetB`, `LampDiffuser`. Confirm units are **mm** if asked.
 4. For each file, set material (PLA or PETG), color (copper-ish / black / white-or-translucent), **20%** infill, no threads, no inserts.
-5. For `LampDiffuser`, if the provider flags thin walls, accept the wall-thickness risk option (wording varies) so the quote can proceed.
+5. For `LampDiffuser`, if the provider flags thin walls, accept the wall-thickness risk option (wording varies) so the quote can proceed. (Printing at home instead? [Slicer tips for thin walls](../../3d_models/README.md#lampdiffuser-thin-walls).)
 6. Review the quote. Printing cost and shipping are separate — shipping can dominate for a single set.
 7. Submit the request, wait for technical review / approval, pay, then track shipment.
 8. When the parts arrive, dry-fit the servos and M2 screws before full assembly. If you notice that the holes for the screws are too loose, you can gently wrap a small piece of tape (for example, masking tape or electrical tape) around the screw, or place a tiny piece of paper inside the hole before inserting the screw. This will help the screw grip better. Make sure everything fits as expected before final assembly.

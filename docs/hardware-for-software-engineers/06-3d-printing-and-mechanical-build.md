@@ -44,6 +44,10 @@ No printer? You can [order the aggregated part sets from a third-party service](
 
 Antenna zone: keep plastic thin/light near the ESP32 ceramic antenna. No metal paint, no foil wrap "for aesthetics."
 
+### Special: LampDiffuser
+
+The lamp diffuser is **one-line thin** on purpose (light transmission). Some slicers drop the walls or report empty layers unless thin-wall / Arachne settings are on. White or translucent filament. Full per-slicer notes: [LampDiffuser (thin walls)](../../3d_models/README.md#lampdiffuser-thin-walls).
+
 ---
 
 ## Tolerance and "it doesn't fit"
