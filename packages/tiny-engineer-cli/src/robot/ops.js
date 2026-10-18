@@ -148,3 +148,19 @@ export async function robotFactoryReset(opts = {}) {
     return fromHttpResponse(res);
   });
 }
+
+/**
+ * Center joints and hold PWM until reboot (flash-safe park).
+ * @param {TransportOpts} [opts]
+ */
+export async function robotPark(opts = {}) {
+  return withTransport("servos_park", {}, opts, async () => {
+    const res = await robotFetch(
+      opts.url ?? getBaseUrl(),
+      "/servos/park",
+      { method: "POST", signal: AbortSignal.timeout(30_000) },
+      getToken(),
+    );
+    return fromHttpResponse(res);
+  });
+}

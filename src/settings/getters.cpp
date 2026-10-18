@@ -31,6 +31,10 @@ bool settingsSerialLogEnabled() {
   return g_settings.serialLog;
 }
 
+bool settingsServoHold() {
+  return g_settings.servoHold;
+}
+
 uint32_t settingsContinuousTimeoutMin() {
   return g_settings.continuousTimeoutMin;
 }

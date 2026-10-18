@@ -29,6 +29,7 @@ const ROUTES = [
   ],
   ["POST", "/setup/audio", "Setup AP only: play welcome.wav from LittleFS"],
   ["POST", "/setup/oled", "Setup AP only: preview OLED 180° rotation (see parameters below)"],
+  ["POST", "/servos/park", "Center all servos at mid and hold PWM until reboot"],
 ] as const;
 
 export function ApiReference() {
@@ -109,6 +110,13 @@ export function ApiReference() {
             </td>
             <td>boolean</td>
             <td>USB serial debug logging</td>
+          </tr>
+          <tr>
+            <td>
+              <code>servo_hold</code>
+            </td>
+            <td>boolean</td>
+            <td>Keep PWM after idle/sleep park (default false)</td>
           </tr>
           <tr>
             <td>

@@ -76,3 +76,17 @@ void handleServoTest(WebServer& server) {
   move->addTo(reply);
   finishTest(server, reply);
 }
+
+void handleServosPark(WebServer& server) {
+  const ApiResult result = apiParkServos();
+  if (!result.ok) {
+    sendError(server, result.code, result.error);
+    return;
+  }
+
+  JsonDocument reply;
+  reply["ok"] = true;
+  reply["park"] = "servos";
+  reply["hold"] = true;
+  sendJson(server, 200, reply);
+}

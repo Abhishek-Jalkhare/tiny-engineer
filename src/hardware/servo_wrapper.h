@@ -68,6 +68,13 @@ void updateAllServos();
 bool anyServoMoving();
 void ensureAllServoOutputs();
 void releaseAllServoOutputs();
+
+// Persist last commanded angles; true when saved or already up to date.
+bool flushServoPoseToNvs();
+void pollServoPoseSave();
+void setServoParkHoldUntilReboot(bool hold);
+bool servoOutputsHoldActive();
+
 float clampElectricalAngle(float angle);
 float clampServoAngle(int index, float angle);
 float servoRuntimeMid(int index);

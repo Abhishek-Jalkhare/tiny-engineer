@@ -4,6 +4,7 @@ import { basename } from "node:path";
 import { DEFAULT_URL, loadDotEnv } from "./config/env.js";
 import {
   runHealth,
+  runPark,
   runReset,
   runServo,
   runSettings,
@@ -42,6 +43,7 @@ Commands:
   settings [get|set]      Read or write settings
   test <name>             Run hardware test (audio|bell|screen|movement|led)
   servo <index> <angle>   Move one servo (degrees)
+  park                    Center servos and hold PWM (flash-safe)
   health                  Fetch health JSON/summary
   reset [--yes]           Factory-reset device (confirm or --yes)
   monitor                 Print serial LOG frames
@@ -285,6 +287,9 @@ export async function run(argv) {
       return;
     case "servo":
       await runServo(out, rest, global.quiet);
+      return;
+    case "park":
+      await runPark(out, rest, global.quiet);
       return;
     case "health":
       await runHealth(out, rest, global.quiet);

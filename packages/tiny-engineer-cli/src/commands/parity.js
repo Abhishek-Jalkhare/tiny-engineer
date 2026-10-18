@@ -2,6 +2,7 @@ import { resolveTransport } from "../config/env.js";
 import {
   robotFactoryReset,
   robotHardwareTest,
+  robotPark,
   robotServo,
   robotSettingsGet,
   robotSettingsSet,
@@ -156,6 +157,40 @@ export async function runTest(out, argv, quietGlobal) {
  * @param {string[]} argv
  * @param {boolean} quietGlobal
  */
+/**
+ * @param {import("../util/output.js").Output} out
+ * @param {string[]} argv
+ * @param {boolean} quietGlobal
+ */
+export async function runPark(out, argv, quietGlobal) {
+  const opts = parseParityArgs(argv);
+  if (opts.error) {
+    out.error(opts.error);
+    process.exitCode = 1;
+    return;
+  }
+  if (opts.help) {
+    console.log(`Usage: tiny-engineer park [--transport] [--url] [--port]
+
+Center all servos at mid and hold PWM until reboot (flash-safe).
+`);
+    return;
+  }
+
+  const result = await robotPark({
+    url: opts.url,
+    transport: opts.transport,
+    port: opts.port,
+  });
+  if (!result.ok) {
+    out.error(formatRobotError(result));
+    process.exitCode = 1;
+    return;
+  }
+  out.ok("servos parked (PWM held until reboot)");
+  process.exitCode = 0;
+}
+
 export async function runServo(out, argv, quietGlobal) {
   const opts = parseParityArgs(argv);
   if (opts.error) {

@@ -8,6 +8,7 @@
 #include "display/oled.h"
 #include "hardware/pca9685_servos.h"
 #include "hardware/rgb.h"
+#include "hardware/servo_wrapper.h"
 #include "network/wifi_connect.h"
 #include "servos.h"
 #include "settings/settings.h"
@@ -105,5 +106,19 @@ ApiResult apiMoveServo(int index, float angle) {
 
   moveServoSmooth(index, angle);
   showIdleScreen();
+  return {true, 200, nullptr};
+}
+
+ApiResult apiParkServos() {
+  setAnimationImmediately(AnimationId::None);
+  ensureAllServoOutputs();
+  centerAllServos();
+  const bool poseSaved = flushServoPoseToNvs();
+  setServoParkHoldUntilReboot(true);
+
+  if (!poseSaved) {
+    return {false, 400, "pose save failed"};
+  }
+
   return {true, 200, nullptr};
 }

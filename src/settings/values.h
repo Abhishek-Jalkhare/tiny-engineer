@@ -14,6 +14,7 @@ struct SettingsValues {
   uint8_t volume;
   bool welcome;
   bool serialLog;
+  bool servoHold;
   uint32_t continuousTimeoutMin;
   char loading[SETTINGS_LOADING_MAX_LEN + 1];
   char eyesStyle[SETTINGS_EYES_STYLE_MAX_LEN + 1];

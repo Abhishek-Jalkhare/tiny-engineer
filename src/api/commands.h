@@ -21,3 +21,6 @@ ApiResult apiRunHardwareTest(const char* name);
 
 // Joint index 0..SETTINGS_SERVO_COUNT-1, angle in degrees.
 ApiResult apiMoveServo(int index, float angle);
+
+// Center all joints, persist pose, hold PWM until reboot.
+ApiResult apiParkServos();

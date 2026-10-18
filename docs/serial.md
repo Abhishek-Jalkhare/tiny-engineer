@@ -34,14 +34,14 @@ Serial port: `--port` / `TINY_ENGINEER_PORT`, else autodetect (Espressif VID `30
 - **Message header (7 bytes):** `type`, `ver`, `id` (u16 LE), `flags`, `len` (u16 LE), then payload.
 - **Types:** req / res / log / evt / stream / sync. Control payloads are JSON; WAV play uses binary **stream** frames with a credit window.
 - **Stream kinds:** data / credit / end / error. Rejected play chunks send **error** (reason text) instead of leaving the host blocked on credit wait. Firmware raises USB CDC RX/TX buffers so ~1 KB stream frames fit.
-- **Provisioning:** while unprovisioned or in setup AP, only sync/ping. Full API after a connection mode is chosen (Wi‑Fi or USB-only). Serial does **not** use Bearer auth.
+- **Provisioning:** while unprovisioned or in setup AP, only sync/ping and `servos_park`. Full API after a connection mode is chosen (Wi‑Fi or USB-only). Serial does **not** use Bearer auth.
 - **Busy:** long play holds a global busy lock; a second play (HTTP or serial) gets `busy`.
 
-Ops (JSON `op`): `ping`/`sync`, `anim`, `settings.get`/`settings.set`, `test`, `servo`, `health`, `factory_reset`, `play` / `play_end`, plus stream data/credit/error frames.
+Ops (JSON `op`): `ping`/`sync`, `servos_park`, `anim`, `settings.get`/`settings.set`, `test`, `servo`, `health`, `factory_reset`, `play` / `play_end`, plus stream data/credit/error frames.
 
 ## PlatformIO monitor
 
-Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. Close the CLI monitor (and any other holder) before `pio run -t upload`. An optional PIO LOG filter is a follow-up, not required.
+Stock PlatformIO serial monitor expects text. Framed COBS sessions look like noise. Prefer `tiny-engineer monitor` for LOG lines. Close the CLI monitor (and any other holder) before `pio run -t upload` so the pre-upload park can open the port. An optional PIO LOG filter is a follow-up, not required.
 
 ## Related
 

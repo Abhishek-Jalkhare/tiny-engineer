@@ -19,7 +19,7 @@ Stock flash: **[Web flash](https://jamro.github.io/tiny-engineer/flash/)**. Buil
 | --- | --- |
 | Built-in WS2812 | Green ready (GPIO10) |
 | I2C init | `Wire.begin` on GPIO0/GPIO1 |
-| PCA9685 | Probe `0x40` early; OE HIGH during init, park neutral, then OE LOW (`PCA9685_OE_WIRED`) |
+| PCA9685 | Probe `0x40` early; OE HIGH during init, restore last pose (or mid), then OE LOW (`PCA9685_OE_WIRED`) |
 | OLED | Probe `0x3C`, init (optional) |
 | Wi-Fi | STA connect from saved NVS credentials, or setup AP `TinyEngineer-XXXX` when unset/failed; mDNS `{hostname}.local` after STA connect |
 | MAX98357A / I2S | `I2S.begin` 22.05 kHz 16-bit stereo |
@@ -110,10 +110,11 @@ curl -X POST "http://tiny-engineer.local/test/servo" -H "Content-Type: applicati
 | `GET` | `/health` | Health JSON — full field list in [api.md](../api.md#get-health) |
 | `GET` / `POST` | `/anim` | Current animation / start one (`name`, optional `interrupt`) — full params in [api.md](../api.md#post-anim) |
 | `POST` | `/play` | Stream a WAV while `talking` (or `/play/{name}`) runs; answers when the clip ends — full params in [api.md](../api.md#post-play) |
-| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
+| `GET` | `/settings` | Persistent settings (`sleep_timeout`, `hostname`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `loading`, `eyes_style`, `access_token_set`, `wifi_configured`, `servo_mins`, `servo_maxs`, `rgb_order`, `oled_rotate_180`, `wifi_networks`) |
 | `POST` | `/settings` | Update NVS settings from a JSON object; the reply carries `reboot_required`, true once `hostname`, `loading` or the WiFi networks differ from what the robot booted with. `servo_mins` / `servo_maxs` (integer arrays), `rgb_order` and `oled_rotate_180` (boolean) are setup-AP-only |
 | `PUT` | `/settings/wifi` | Replace the saved WiFi networks (JSON array of 1 to 5); first one tested in setup AP mode |
 | `POST` | `/settings/reset` | Factory reset settings to defaults (clears WiFi, keeps servo ranges, RGB mapping, and screen rotation); power-cycle to reopen setup AP |
+| `POST` | `/servos/park` | Center all servos at mid, flush pose NVS, hold PWM until reboot |
 | `POST` | `/test/audio` | `{"ok":true,"test":"audio"}` after `runSoundTest()` |
 | `POST` | `/test/audio/bell` | `{"ok":true,"test":"bell"}` after `playBell()` |
 | `POST` | `/test/screen` | `{"ok":true,"test":"screen"}` after `runOledTest()` |

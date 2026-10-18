@@ -38,6 +38,7 @@ describe("config page", () => {
       volume: 70,
       welcome: true,
       serial_log: false,
+      servo_hold: false,
       continuous_timeout: 5,
       loading: "progress",
       eyes_style: "classic",

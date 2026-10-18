@@ -30,3 +30,5 @@ void handleSetupServo(WebServer& server);
 void handleSetupLed(WebServer& server);
 void handleSetupAudio(WebServer& server);
 void handleSetupOled(WebServer& server);
+
+void handleServosPark(WebServer& server);

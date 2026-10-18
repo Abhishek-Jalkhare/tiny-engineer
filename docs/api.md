@@ -6,7 +6,7 @@ Listens on **port 80** after STA Wi-Fi connects, or during setup AP mode at `htt
 
 Optional auth: when an `access_token` is configured in settings, all JSON API routes require `Authorization: Bearer <token>`. Empty token (default) means no auth. `GET /auth` is always public and reports whether auth is required. Missing/wrong token → **401** `{"ok":false,"error":"unauthorized"}`. HTML panel routes stay public (the UI prompts for the token). Replies are `Content-Type: application/json`. Routes that take parameters (except `POST /anim` and `/play`) read a JSON object body sent with `Content-Type: application/json`; query parameters or form fields on those routes → **400** `send a JSON body with Content-Type: application/json`, and a body that is not a JSON object → **400** `body must be a JSON object`. CORS: requests with an `Origin` header get `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Headers: Authorization, Content-Type` and `Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS`; a preflight `OPTIONS` gets **200**.
 
-When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
+When the robot is not yet provisioned (no connection mode chosen), control APIs (`/anim`, `/test/*`, `/play`) return **503** `{"ok":false,"error":"not provisioned"}`. Setup routes (`/`, `/config`, `/auth`, `/health`, `/settings`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, `/servos/park`) stay available on the setup AP. Connection mode is `wifi` or `usb` (`link_mode` in settings/auth/health). USB-only mode disables Wi‑Fi station and the HTTP API after reboot; control then uses the USB serial protocol ([serial.md](serial.md)).
 
 If boot WiFi credentials are missing, the device opens setup AP mode (`TinyEngineer-XXXX`) and serves a five-step setup wizard at `/config` (servo hub: guided calibration / skip / assembly centering, then OLED orientation, RGB LED, speaker test, then connection). If saved credentials fail, it reopens setup AP mode. The setup AP acts as a captive portal: DHCP sends the portal URL (option 114) and DNS answers every name with the AP IP, so a phone that joins the network opens the wizard on its own. Hardware tests: [`docs/hardware/testing.md`](hardware/testing.md). How to wire this API into AI tools: [`integration.md`](integration.md).
 
@@ -16,7 +16,7 @@ Firmware answers mDNS A and AAAA (IPv6 link-local) so macOS does not wait 2–3s
 
 ### `GET /`
 
-HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, and `/setup/oled`. Safe, no hardware side effects. Always public (no Bearer required).
+HTML endpoint index. Lists all routes plus supported parameters for `/anim`, `/settings`, `/test/servo`, `/setup/servo`, `/setup/led`, `/setup/audio`, `/setup/oled`, and `/servos/park`. Safe, no hardware side effects. Always public (no Bearer required).
 
 Open in a browser:
 
@@ -112,6 +112,7 @@ curl http://tiny-engineer.local/settings
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -133,6 +134,7 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
+| `servo_hold` | Keep PWM after idle/sleep park instead of limp full-off (default **false**). Reduces droop before flash; use with [`POST /servos/park`](#post-servospark) for flash-safe centering |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -148,7 +150,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -170,6 +172,7 @@ curl -X POST "http://192.168.4.1/settings" \
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -192,6 +195,7 @@ curl -X POST "http://192.168.4.1/settings" \
 | `volume` | integer | 0–100 percent |
 | `welcome` | boolean | Boot welcome animation |
 | `serial_log` | boolean | USB serial debug logging |
+| `servo_hold` | boolean | Keep PWM after idle/sleep park |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
@@ -225,7 +229,7 @@ The list must hold 1 to 5 networks, so the robot always has one to try; factory 
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) and `servo_hold` are cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -241,6 +245,7 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "volume": 70,
   "welcome": true,
   "serial_log": false,
+  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -426,6 +431,21 @@ Wrong fields return **400**:
 | `invalid rotate_180` | `rotate_180` present but not a boolean |
 
 Save with `POST /settings` `{"oled_rotate_180":true}` (setup AP only). The saved value applies immediately and on the next boot.
+
+### `POST /servos/park`
+
+Flash-safe park: stop the current animation, smoothly move every joint to its calibrated mid, persist the pose to NVS, and keep PWM enabled until the next reboot (skips idle limp). No body. Requires Bearer when auth is enabled. Available in setup AP and after provisioning (does not require a chosen connection mode).
+
+```bash
+curl -X POST "http://tiny-engineer.local/servos/park"
+tiny-engineer park --transport serial
+```
+
+```json
+{ "ok": true, "park": "servos", "hold": true }
+```
+
+Pose NVS write failure → **400** `{"ok":false,"error":"pose save failed"}` (PWM hold is still armed). Details: [hardware/servos.md](hardware/servos.md#flash-safe-park).
 
 ### `POST /test/servo`
 
