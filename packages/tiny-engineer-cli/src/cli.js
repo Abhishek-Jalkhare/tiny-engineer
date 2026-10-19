@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { basename } from "node:path";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { DEFAULT_URL, loadDotEnv } from "./config/env.js";
 import {
@@ -26,6 +27,10 @@ import { readStdin } from "./util/stdin.js";
 import { runDoctor } from "./wizard/doctor.js";
 import { runSetup } from "./wizard/setup.js";
 import { runUninstall } from "./wizard/uninstall.js";
+
+const { version } = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"),
+);
 
 function printHelp() {
   const integrations = listIntegrations().join(", ");
@@ -55,6 +60,7 @@ Options (most commands):
   --port <path>           Serial port when transport is serial
   -q, --quiet, --silent   Suppress success/info lines; errors still print
   -h, --help              Show this help
+  -v, --version           Print version and exit
 
 Auth:
   If TINY_ENGINEER_TOKEN is set (process env or project-root .env), HTTP requests
@@ -255,6 +261,10 @@ export async function run(argv) {
   const args = global.rest;
   if (args.length === 0 || args[0] === "-h" || args[0] === "--help") {
     printHelp();
+    return;
+  }
+  if (args[0] === "-v" || args[0] === "--version") {
+    console.log(version);
     return;
   }
 
