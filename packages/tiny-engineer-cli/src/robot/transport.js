@@ -1,4 +1,4 @@
-import { getBaseUrl, getToken, resolveTransport } from "../config/env.js";
+import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
 import { formatRobotError, postAnim, postPlay, robotFetch } from "./client.js";
 import { connectSerialRobot, serialRequest } from "./serial/client.js";
 
@@ -9,6 +9,14 @@ import { connectSerialRobot, serialRequest } from "./serial/client.js";
  *   port?: string | null,
  * }} TransportOpts
  */
+
+/**
+ * @param {TransportOpts} [opts]
+ * @returns {string | null}
+ */
+function httpToken(opts = {}) {
+  return getHttpAuthToken({ urlOverride: opts.url !== undefined });
+}
 
 /**
  * @param {TransportOpts} [opts]
@@ -45,7 +53,7 @@ export async function robotSetAnim(name, opts = {}) {
   }
 
   const baseUrl = opts.url ?? getBaseUrl();
-  const result = await postAnim(baseUrl, name, getToken());
+  const result = await postAnim(baseUrl, name, httpToken(opts));
   return { ...result, target: baseUrl };
 }
 
@@ -83,7 +91,7 @@ export async function robotPlay(opts) {
     baseUrl,
     wav: opts.wav,
     name: opts.name,
-    token: getToken(),
+    token: httpToken(opts),
   });
   return { ...result, target: baseUrl };
 }
@@ -124,7 +132,7 @@ export async function robotHealth(opts = {}) {
       baseUrl,
       "/health",
       { method: "GET", signal: AbortSignal.timeout(2000) },
-      getToken(),
+      httpToken(opts),
     );
     const body = await res.text();
     if (res.ok) {

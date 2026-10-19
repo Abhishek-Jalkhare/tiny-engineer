@@ -1,7 +1,5 @@
-import { join } from "node:path";
-
 import { all as allIntegrations, get as getIntegration } from "../integrations/registry.js";
-import { readJsonFile, stripEnvTinyEngineer, writeJsonFile } from "./merge.js";
+import { readJsonFile, writeJsonFile } from "./merge.js";
 import { confirm, multiSelect } from "./prompt.js";
 
 /**
@@ -11,7 +9,6 @@ import { confirm, multiSelect } from "./prompt.js";
  *   yes: boolean,
  *   all: boolean,
  *   dryRun: boolean,
- *   purgeEnv: boolean,
  *   ides: string[],
  *   error?: string,
  * }}
@@ -21,7 +18,6 @@ export function parseUninstallArgs(argv) {
   let yes = false;
   let all = false;
   let dryRun = false;
-  let purgeEnv = false;
   /** @type {string[]} */
   const ides = [];
 
@@ -44,16 +40,22 @@ export function parseUninstallArgs(argv) {
       continue;
     }
     if (arg === "--purge-env") {
-      purgeEnv = true;
-      continue;
+      return {
+        help,
+        yes,
+        all,
+        dryRun,
+        ides,
+        error: "--purge-env removed; edit user config env or project .env by hand",
+      };
     }
     if (arg.startsWith("-")) {
-      return { help, yes, all, dryRun, purgeEnv, ides, error: `Unknown argument: ${arg}` };
+      return { help, yes, all, dryRun, ides, error: `Unknown argument: ${arg}` };
     }
     ides.push(arg);
   }
 
-  return { help, yes, all, dryRun, purgeEnv, ides };
+  return { help, yes, all, dryRun, ides };
 }
 
 /**
@@ -106,9 +108,6 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
 
     if (withHooks.length === 0) {
       out.info("no Tiny Engineer hooks found in this project");
-      if (args.purgeEnv) {
-        // still allow interactive purge? skip without --yes path for env-only
-      }
       selected = [];
     } else {
       selected = await multiSelect(
@@ -143,26 +142,19 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
     for (const plan of plans) {
       out.info(`${plan.relativePath}: remove ${plan.detail}`);
     }
-    if (args.purgeEnv) {
-      out.info(".env: strip TINY_ENGINEER_URL / TOKEN / TRANSPORT / PORT");
-    }
     process.exitCode = 0;
     return;
   }
 
-  if (total === 0 && !args.purgeEnv) {
+  if (total === 0) {
     out.ok("nothing to remove");
     process.exitCode = 0;
     return;
   }
 
   if (!args.yes) {
-    const labels =
-      plans.length > 0
-        ? plans.map((p) => `${p.ide} (${p.removeCount})`).join(", ")
-        : "(hooks none)";
-    const envNote = args.purgeEnv ? " + purge .env Tiny Engineer keys" : "";
-    const ok = await confirm(`Remove ${labels}${envNote}?`, true);
+    const labels = plans.map((p) => `${p.ide} (${p.removeCount})`).join(", ");
+    const ok = await confirm(`Remove ${labels}?`, true);
     if (!ok) {
       out.info("uninstall cancelled");
       process.exitCode = 0;
@@ -182,14 +174,6 @@ export async function runUninstall(out, argv, { projectRoot = process.cwd() } = 
     out.ok(`updated ${plan.relativePath} (removed ${plan.detail})`);
   }
 
-  if (args.purgeEnv) {
-    const envPath = join(projectRoot, ".env");
-    const result = stripEnvTinyEngineer(envPath);
-    if (result === "removed") out.ok(".env: removed TINY_ENGINEER_* keys");
-    else if (result === "absent") out.info(".env: absent");
-    else out.info(".env: no TINY_ENGINEER_* keys");
-  }
-
   out.ok("uninstall complete");
   process.exitCode = 0;
 }
@@ -199,19 +183,17 @@ function printUninstallHelp() {
 
 Remove Tiny Engineer hook entries from the current project.
 Only commands matching Tiny Engineer markers are removed; other hooks stay.
-Config files are never deleted.
+Config files are never deleted. Connection prefs (user config / .env) are not touched.
 
 Options:
   --all              Target all integrations
   --yes, -y          Non-interactive (requires --all or ide args)
   --dry-run          Print plan without writing files
-  --purge-env        Also remove TINY_ENGINEER_URL / TOKEN / TRANSPORT / PORT from .env
   -h, --help         Show this help
 
 Examples:
   tiny-engineer uninstall
   tiny-engineer uninstall cursor --yes
   tiny-engineer uninstall --all --yes --dry-run
-  tiny-engineer uninstall --all --yes --purge-env
 `);
 }

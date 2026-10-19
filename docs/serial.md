@@ -7,18 +7,18 @@ Tiny Engineer can be driven over USB CDC (same port used for flash) with a frame
 | Surface | Choice | Persists |
 | --- | --- | --- |
 | Device AP wizard (web UI) **Connection** step | `link_mode`: `wifi` \| `usb` | NVS on the robot |
-| Project `tiny-engineer setup` | host transport: `http` \| `serial` | project `.env` (`TINY_ENGINEER_TRANSPORT`) |
+| `tiny-engineer setup` | host transport: `http` \| `serial` | user config `env` (`TINY_ENGINEER_TRANSPORT`) |
 
 - Device `link_mode=usb` skips STA and does not start HTTP. Completing USB-only in the setup wizard **stops the setup AP in-session** and unlocks full serial without a power-cycle. Escape USB-only only via **factory reset** (reopens setup AP).
 - Host transport is how the CLI/hooks talk to the robot. Default is `http`. Serial is opt-in via setup or env/flags.
 
 ## CLI transport
 
-Resolution order: `--transport` → `TINY_ENGINEER_TRANSPORT` → default `http`. No auto-probe between HTTP and serial.
+Resolution order: `--transport` → process/project/user `TINY_ENGINEER_TRANSPORT` → default `http`. No auto-probe between HTTP and serial. Project `.env` overrides user config when present.
 
 ```bash
 tiny-engineer setup cursor --yes --transport serial
-# writes TINY_ENGINEER_TRANSPORT=serial (optional TINY_ENGINEER_PORT)
+# writes TINY_ENGINEER_TRANSPORT=serial to user config (optional TINY_ENGINEER_PORT)
 
 tiny-engineer anim ring --transport serial
 tiny-engineer doctor --transport serial
@@ -26,7 +26,7 @@ tiny-engineer monitor          # prints LOG frames (exclusive port use)
 tiny-engineer reset --yes      # factory reset; confirm or --yes
 ```
 
-Serial port: `--port` / `TINY_ENGINEER_PORT`, else autodetect (Espressif VID `303A` preferred) with cache at `~/.config/tiny-engineer/serial-port.json` (invalidated on open/probe failure).
+Serial port: `--port` / `TINY_ENGINEER_PORT`, else autodetect (Espressif VID `303A` preferred) with cache under the user config directory (`serial-port.json`; invalidated on open/probe failure).
 
 ## Protocol overview
 

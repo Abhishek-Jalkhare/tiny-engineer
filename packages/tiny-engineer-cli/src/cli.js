@@ -39,9 +39,9 @@ function printHelp() {
 Unified CLI for the Tiny Engineer desk robot.
 
 Commands:
-  setup [ide...]          Merge IDE hook configs into the current project
+  setup [ide...]          Project hooks + user config (URL/transport/token)
   uninstall [ide...]      Remove Tiny Engineer hook entries (keeps other hooks)
-  doctor                  Check transport, URL/token, hook wiring, and health
+  doctor                  Check transport, URL/token, user config, hooks, health
   hook <ide>              Read hook JSON from stdin, map to a pose, set anim
   anim <name>             Set animation pose
   play <clip.wav> [opts]  Stream WAV play (HTTP or serial credits)
@@ -62,9 +62,12 @@ Options (most commands):
   -h, --help              Show this help
   -v, --version           Print version and exit
 
-Auth:
-  If TINY_ENGINEER_TOKEN is set (process env or project-root .env), HTTP requests
-  send Authorization: Bearer <token>. Must match the device access_token.
+Config / auth:
+  Connection prefs: user config env (~/.config/tiny-engineer/env; Windows %APPDATA%).
+  Load: flag > process env > project .env > user env > defaults.
+  If TINY_ENGINEER_TOKEN is set, HTTP sends Authorization: Bearer <token>
+  (not sent when URL came only from project .env and token from user/process —
+  request continues without Bearer; stderr warns).
   Serial transport skips Bearer auth.
 
 Output:

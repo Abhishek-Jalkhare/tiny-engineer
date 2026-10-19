@@ -1,12 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+
+import { userConfigDir } from "../../config/paths.js";
 
 /**
  * @returns {string}
  */
 export function defaultCachePath() {
-  return join(homedir(), ".config", "tiny-engineer", "serial-port.json");
+  return join(userConfigDir(), "serial-port.json");
 }
 
 /**

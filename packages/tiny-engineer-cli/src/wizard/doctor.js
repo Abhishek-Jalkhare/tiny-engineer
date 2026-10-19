@@ -1,7 +1,15 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { DEFAULT_URL, getBaseUrl, getToken, resolveTransport } from "../config/env.js";
+import {
+  DEFAULT_URL,
+  TOKEN_KEY,
+  getBaseUrl,
+  getToken,
+  listConnectionKeysInFile,
+  resolveTransport,
+} from "../config/env.js";
+import { userEnvPath } from "../config/paths.js";
 import { all as allIntegrations } from "../integrations/registry.js";
 import { robotHealth } from "../robot/transport.js";
 import { parseCommonArgs } from "../util/args.js";
@@ -43,6 +51,20 @@ export async function checkHealth(baseUrl) {
 
 /**
  * @param {import("../util/output.js").Output} out
+ * @param {string} projectRoot
+ */
+export function reportProjectOverrides(out, projectRoot) {
+  const keys = listConnectionKeysInFile(join(projectRoot, ".env"));
+  if (keys.length === 0) {
+    out.info("project .env overrides: none");
+    return;
+  }
+  const named = keys.map((k) => (k === TOKEN_KEY ? `${TOKEN_KEY} (set)` : k)).join(", ");
+  out.info(`project .env overrides user config: ${named}`);
+}
+
+/**
+ * @param {import("../util/output.js").Output} out
  * @param {string[]} argv
  * @param {{ projectRoot?: string }} [opts]
  */
@@ -56,7 +78,7 @@ export async function runDoctor(out, argv, { projectRoot = process.cwd() } = {})
   if (args.help) {
     console.log(`Usage: tiny-engineer doctor [--transport http|serial] [--url] [--port]
 
-Report robot transport/URL/token, detected IDE configs, and health.
+Report robot transport/URL/token, user config path, project overrides, IDE hooks, and health.
 `);
     return;
   }
@@ -75,6 +97,7 @@ Report robot transport/URL/token, detected IDE configs, and health.
 
   const url = args.url ?? getBaseUrl() ?? DEFAULT_URL;
   const token = getToken();
+  const userEnv = userEnvPath();
 
   out.ok(`transport: ${resolved.transport}`);
   if (resolved.transport === "http") {
@@ -84,6 +107,9 @@ Report robot transport/URL/token, detected IDE configs, and health.
     out.info(`port: ${args.port}`);
   }
 
+  out.info(`user config: ${userEnv}${existsSync(userEnv) ? " (present)" : " (absent)"}`);
+  reportProjectOverrides(out, projectRoot);
+
   for (const integration of allIntegrations()) {
     const detected = Boolean(integration.detect?.(projectRoot));
     const rel = integration.configRelativePath?.() ?? "";
@@ -92,12 +118,11 @@ Report robot transport/URL/token, detected IDE configs, and health.
     out.info(`${integration.id}: ${mark}${rel ? ` (${rel})` : ""}`);
   }
 
-  // Surface .env presence without printing secrets.
   try {
     readFileSync(join(projectRoot, ".env"), "utf8");
-    out.info(".env: present");
+    out.info("project .env: present");
   } catch {
-    out.info(".env: absent");
+    out.info("project .env: absent");
   }
 
   const health = await robotHealth({

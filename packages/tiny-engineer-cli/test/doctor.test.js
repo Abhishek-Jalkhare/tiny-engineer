@@ -57,6 +57,9 @@ test("checkHealth returns fail on throw", async () => {
 
 test("runDoctor prints without throwing", async () => {
   const dir = mkdtempSync(join(tmpdir(), "te-doc-"));
+  const cfg = mkdtempSync(join(tmpdir(), "te-ucfg-"));
+  const prev = process.env.TINY_ENGINEER_CONFIG_DIR;
+  process.env.TINY_ENGINEER_CONFIG_DIR = cfg;
   const original = globalThis.fetch;
   globalThis.fetch = async () => {
     throw new Error("offline");
@@ -70,12 +73,20 @@ test("runDoctor prints without throwing", async () => {
     error: (m) => lines.push(String(m)),
   });
   try {
+    writeFileSync(join(dir, ".env"), "TINY_ENGINEER_URL=http://override\nTINY_ENGINEER_TOKEN=sekrit\n", "utf8");
     await runDoctor(out, [], { projectRoot: dir });
     assert.ok(lines.some((l) => l.includes("url:")));
     assert.ok(lines.some((l) => l.includes("cursor:")));
+    assert.ok(lines.some((l) => l.includes("user config:")));
+    assert.ok(lines.some((l) => l.includes("overrides") && l.includes("TINY_ENGINEER_URL")));
+    assert.ok(lines.some((l) => l.includes("TINY_ENGINEER_TOKEN (set)")));
+    assert.ok(!lines.some((l) => l.includes("sekrit")));
   } finally {
     globalThis.fetch = original;
+    if (prev === undefined) delete process.env.TINY_ENGINEER_CONFIG_DIR;
+    else process.env.TINY_ENGINEER_CONFIG_DIR = prev;
     rmSync(dir, { recursive: true, force: true });
+    rmSync(cfg, { recursive: true, force: true });
     process.exitCode = 0;
   }
 });

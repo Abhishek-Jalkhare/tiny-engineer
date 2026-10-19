@@ -5,15 +5,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createOutput } from "../src/util/output.js";
 import { createStyle } from "../src/util/style.js";
-import { stripEnvTinyEngineer } from "../src/wizard/merge.js";
 import { parseUninstallArgs, runUninstall } from "../src/wizard/uninstall.js";
 
 test("parseUninstallArgs reads flags", () => {
-  const args = parseUninstallArgs(["cursor", "--yes", "--dry-run", "--purge-env"]);
+  const args = parseUninstallArgs(["cursor", "--yes", "--dry-run"]);
   assert.deepEqual(args.ides, ["cursor"]);
   assert.equal(args.yes, true);
   assert.equal(args.dryRun, true);
-  assert.equal(args.purgeEnv, true);
+});
+
+test("parseUninstallArgs rejects --purge-env", () => {
+  const args = parseUninstallArgs(["--purge-env"]);
+  assert.ok(args.error?.includes("--purge-env"));
 });
 
 test("runUninstall --yes without ide exits 1", async () => {
@@ -91,25 +94,5 @@ test("runUninstall --yes removes cursor hooks", async () => {
   } finally {
     rmSync(dir, { recursive: true, force: true });
     process.exitCode = 0;
-  }
-});
-
-test("stripEnvTinyEngineer removes only TE keys", () => {
-  const dir = mkdtempSync(join(tmpdir(), "te-env-"));
-  const envPath = join(dir, ".env");
-  try {
-    writeFileSync(
-      envPath,
-      "FOO=1\nTINY_ENGINEER_URL=http://x\nTINY_ENGINEER_TOKEN=secret\nTINY_ENGINEER_TRANSPORT=serial\nTINY_ENGINEER_PORT=/dev/tty\nBAR=2\n",
-      "utf8",
-    );
-    assert.equal(stripEnvTinyEngineer(envPath), "removed");
-    const next = readFileSync(envPath, "utf8");
-    assert.ok(next.includes("FOO=1"));
-    assert.ok(next.includes("BAR=2"));
-    assert.ok(!next.includes("TINY_ENGINEER"));
-    assert.equal(stripEnvTinyEngineer(envPath), "unchanged");
-  } finally {
-    rmSync(dir, { recursive: true, force: true });
   }
 });

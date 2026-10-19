@@ -49,9 +49,11 @@ npx -y tiny-engineer doctor
 ```
 
 - Cold `npx` can be slow: `setup` writes hook **`timeout` ≥ 30**.
+- Connection prefs (transport, URL, port, token) live in **user config** (`~/.config/tiny-engineer/env` on macOS/Linux, `%APPDATA%\tiny-engineer\env` on Windows; override with `TINY_ENGINEER_CONFIG_DIR`). Setup never edits project `.env`.
+- Load order: flag → process env → project `.env` (override) → user `env` → defaults. Setup and `doctor` warn when project `.env` overrides user config.
 - Optional: `--url http://192.168.x.x` (default `TINY_ENGINEER_URL`, else `http://tiny-engineer.local`).
-- Host transport: `--transport http|serial` or `TINY_ENGINEER_TRANSPORT` (setup writes this into project `.env`). Default `http`. Distinct from the device AP **Connection** step (`link_mode`).
-- Auth (HTTP only): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` in the process env or a project-root `.env`. The CLI sends `Authorization: Bearer …`. Serial skips Bearer.
+- Host transport: `--transport http|serial` or `TINY_ENGINEER_TRANSPORT` (setup writes this into user config). Default `http`. Distinct from the device AP **Connection** step (`link_mode`).
+- Auth (HTTP only): if the device has an `access_token`, set `TINY_ENGINEER_TOKEN` (process env, user config, or project `.env` override). The CLI sends `Authorization: Bearer …`. A user/process token is not sent when the URL came only from project `.env` (request continues without Bearer; stderr warns). Serial skips Bearer.
 - Prefer registry `npx` over `npx github:…` (SSH often fails in IDE hooks).
 
 **This firmware repo (local CLI development):**
@@ -71,7 +73,7 @@ npx -y tiny-engineer doctor
 npx -y tiny-engineer uninstall cursor --yes # remove only Tiny Engineer hook entries
 ```
 
-`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and can write `TINY_ENGINEER_URL` into `.env`. It does not delete foreign hooks.
+`setup` merges hook commands into the project (Cursor `.cursor/hooks.json`, Claude Code `.claude/settings.json`, Antigravity `.agents/hooks.json`) using `npx -y tiny-engineer hook <ide>`, and writes connection prefs into **user config** (labeled as global vs project in the wizard). It does not delete foreign hooks and does not edit project `.env`. Uninstall removes hooks only (no `--purge-env`).
 
 This firmware repo already ships configs pointing at the **local** CLI bin for developing the package.
 

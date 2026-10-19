@@ -161,7 +161,7 @@ That shorthand makes npm fetch via **SSH** (`git@github.com:…`). Cursor hooks 
 
 Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`), maps to a pose in [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`. Events whose `conversation_id` or `generation_id` is `""` are skipped (no POST). Missing IDs still map.
 
-If the robot has an `access_token` set, put the same value in `TINY_ENGINEER_TOKEN` (system/process env, or project-root `.env`). The CLI then sends `Authorization: Bearer <token>`. Without a token, no auth header is sent.
+If the robot has an `access_token` set, put the same value in `TINY_ENGINEER_TOKEN` (process env, user config from `tiny-engineer setup`, or project-root `.env` as an override). The CLI then sends `Authorization: Bearer <token>`. Without a token, no auth header is sent.
 
 Config: [`.cursor/hooks.json`](../.cursor/hooks.json). Local anim hook: [`.cursor/hooks/tiny-engineer-cursor.sh`](../.cursor/hooks/tiny-engineer-cursor.sh). Event logging (separate): [`.cursor/hooks/log-event.sh`](../.cursor/hooks/log-event.sh).
 

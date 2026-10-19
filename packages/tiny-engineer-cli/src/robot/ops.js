@@ -1,10 +1,18 @@
-import { getBaseUrl, getToken, resolveTransport } from "../config/env.js";
+import { getBaseUrl, getHttpAuthToken, resolveTransport } from "../config/env.js";
 import { robotFetch } from "./client.js";
 import { serialRequest } from "./serial/client.js";
 
 /**
  * @typedef {{ transport?: string, url?: string, port?: string | null }} TransportOpts
  */
+
+/**
+ * @param {TransportOpts} [opts]
+ * @returns {string | null}
+ */
+function httpToken(opts = {}) {
+  return getHttpAuthToken({ urlOverride: opts.url !== undefined });
+}
 
 /**
  * @param {Response} response
@@ -67,7 +75,7 @@ export async function robotSettingsGet(opts = {}) {
       opts.url ?? getBaseUrl(),
       "/settings",
       { method: "GET", signal: AbortSignal.timeout(5000) },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });
@@ -88,7 +96,7 @@ export async function robotSettingsSet(patch, opts = {}) {
         body: JSON.stringify(patch),
         signal: AbortSignal.timeout(5000),
       },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });
@@ -106,7 +114,7 @@ export async function robotHardwareTest(name, opts = {}) {
       opts.url ?? getBaseUrl(),
       path,
       { method: "POST", signal: AbortSignal.timeout(60_000) },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });
@@ -128,7 +136,7 @@ export async function robotServo(index, angle, opts = {}) {
         body: JSON.stringify({ index, angle }),
         signal: AbortSignal.timeout(30_000),
       },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });
@@ -143,7 +151,7 @@ export async function robotFactoryReset(opts = {}) {
       opts.url ?? getBaseUrl(),
       "/settings/reset",
       { method: "POST", signal: AbortSignal.timeout(10_000) },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });
@@ -159,7 +167,7 @@ export async function robotPark(opts = {}) {
       opts.url ?? getBaseUrl(),
       "/servos/park",
       { method: "POST", signal: AbortSignal.timeout(30_000) },
-      getToken(),
+      httpToken(opts),
     );
     return fromHttpResponse(res);
   });

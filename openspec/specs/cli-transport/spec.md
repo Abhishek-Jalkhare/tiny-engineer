@@ -7,7 +7,7 @@ Defines how the Tiny Engineer CLI selects HTTP or serial transport, discovers se
 ## Requirements
 
 ### Requirement: Explicit transport selection
-The CLI MUST resolve transport in this order: command-line flag, then process/project environment (`TINY_ENGINEER_TRANSPORT`), then the documented default `http`. The CLI MUST NOT choose between HTTP and serial by probing reachability or preferring a plugged USB device. A transport value written to the project `.env` by setup counts as an environment selection for later commands.
+The CLI MUST resolve transport in this order: command-line flag, then environment sources for `TINY_ENGINEER_TRANSPORT` (process env, then project `.env`, then user config `env`, then other documented dotenv sources), then the documented default `http`. The CLI MUST NOT choose between HTTP and serial by probing reachability or preferring a plugged USB device. A transport value written to the user config `env` by setup counts as an environment selection for later commands when not overridden by a higher-precedence source.
 
 #### Scenario: Serial transport selected
 - **WHEN** the user runs a robot command with transport `serial`
@@ -22,47 +22,44 @@ The CLI MUST resolve transport in this order: command-line flag, then process/pr
 - **THEN** the CLI uses HTTP (backward compatible) and does not probe serial
 
 #### Scenario: Flag overrides env
-- **WHEN** `.env` sets `TINY_ENGINEER_TRANSPORT=serial` and the user passes `--transport http`
+- **WHEN** an env source sets `TINY_ENGINEER_TRANSPORT=serial` and the user passes `--transport http`
 - **THEN** the CLI uses HTTP for that invocation
 
+#### Scenario: Legacy project env still overrides user config
+- **WHEN** project `.env` sets `TINY_ENGINEER_TRANSPORT=serial` and user `env` sets `http`
+- **THEN** the CLI uses serial when no transport flag is passed
+
 ### Requirement: Project setup chooses host transport
-The project `tiny-engineer setup` wizard MUST let the user choose host transport `http` or `serial` via an interactive prompt, or via non-interactive flags/env with the same meaning.
+The `tiny-engineer setup` wizard MUST let the user choose host transport `http` or `serial` via an interactive prompt, or via non-interactive flags/env with the same meaning.
 
 #### Scenario: Interactive serial setup
 - **WHEN** the user runs interactive setup and chooses serial transport
-- **THEN** setup records serial as the chosen host transport for that project
+- **THEN** setup records serial as the chosen host transport in user config
 
 ### Requirement: Project setup merges transport into .env
-Setup MUST merge `TINY_ENGINEER_TRANSPORT` into the project `.env` using create/update/skip/force behavior consistent with `TINY_ENGINEER_URL` merge.
+Setup MUST merge `TINY_ENGINEER_TRANSPORT` into the user config `env` file (not the project `.env`) using create / confirm-on-diff / keep-on-`--yes` behavior defined by the cli-user-config capability.
 
 #### Scenario: Serial transport written to env
-- **WHEN** setup completes with serial transport selected
-- **THEN** the project `.env` contains `TINY_ENGINEER_TRANSPORT=serial`
+- **WHEN** setup completes with serial transport selected and no conflicting stored value blocks the write
+- **THEN** the user config `env` contains `TINY_ENGINEER_TRANSPORT=serial`
 
 #### Scenario: Commands use setup-written transport
-- **WHEN** setup has written `TINY_ENGINEER_TRANSPORT=serial` and the user runs `anim` without a transport flag
+- **WHEN** setup has written `TINY_ENGINEER_TRANSPORT=serial` to user config and the user runs `anim` without a transport flag and without a higher-precedence override
 - **THEN** the CLI uses the serial transport
 
 ### Requirement: Project setup HTTP still collects URL
-When the chosen host transport is `http`, setup MUST collect a robot base URL and merge `TINY_ENGINEER_URL` as it does today, and MUST also persist transport as `http` in `.env`.
+When the chosen host transport is `http`, setup MUST collect a robot base URL and merge `TINY_ENGINEER_URL` into the user config `env`, and MUST also persist transport as `http` there (subject to confirm-on-diff / `--yes` keep rules).
 
 #### Scenario: Interactive HTTP setup writes URL and transport
-- **WHEN** the user runs interactive setup, chooses HTTP, and provides a base URL
-- **THEN** the project `.env` contains `TINY_ENGINEER_TRANSPORT=http` and `TINY_ENGINEER_URL` for that URL
+- **WHEN** the user runs interactive setup, chooses HTTP, and provides a base URL with no conflicting stored values (or confirms replace)
+- **THEN** the user config `env` contains `TINY_ENGINEER_TRANSPORT=http` and `TINY_ENGINEER_URL` for that URL
 
 ### Requirement: Project setup serial does not require URL
-When the chosen host transport is `serial`, setup MUST NOT require a robot URL. Setup MAY offer an optional serial port and MUST merge `TINY_ENGINEER_PORT` when the user provides one.
+When the chosen host transport is `serial`, setup MUST NOT require a robot URL. Setup MAY offer an optional serial port and MUST merge `TINY_ENGINEER_PORT` into the user config `env` when the user provides one (subject to confirm-on-diff / `--yes` keep rules).
 
 #### Scenario: Serial setup without URL
 - **WHEN** the user completes serial transport setup without entering a URL
 - **THEN** setup succeeds and does not fail for a missing `TINY_ENGINEER_URL`
-
-### Requirement: Uninstall purges transport env keys
-Uninstall purge of Tiny Engineer env keys MUST remove `TINY_ENGINEER_TRANSPORT` and `TINY_ENGINEER_PORT` along with URL and token keys.
-
-#### Scenario: Purge removes transport
-- **WHEN** the user runs uninstall with env purge after setup wrote transport keys
-- **THEN** those `TINY_ENGINEER_TRANSPORT` and `TINY_ENGINEER_PORT` lines are removed from `.env`
 
 ### Requirement: Serial port override and autodetection
 When transport is `serial`, the CLI MUST accept an explicit port path. If no port is provided, the CLI MUST attempt autodetection of a connected Tiny Engineer USB CDC device. Autodetection results that take more than a few milliseconds to obtain MUST be cached for later invocations, with cache invalidation when the cached port fails to open or fails a probe.
