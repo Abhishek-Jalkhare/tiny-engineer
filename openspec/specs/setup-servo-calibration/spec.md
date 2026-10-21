@@ -46,7 +46,7 @@ The assembly path MUST let the user move all servos to electrical 90° and ident
 
 #### Scenario: Identify one servo
 - **WHEN** the user identifies a joint on the assembly path after successful center-all
-- **THEN** that joint moves a few degrees below and above 90° (about ±3°) and returns to 90°
+- **THEN** that joint moves a few degrees below and above 90° and returns to 90° (about ±3° for head, neck, and hands; about ±5° for body)
 - **AND** other joints are not commanded by that identify action
 - **AND** that joint’s identify control shows a done state until the user leaves assembly
 

@@ -76,6 +76,7 @@ Same filenames in each `parts/{servo_id}/3mf/` folder (and matching `stl/` / `st
 | `UpperArm.3mf` | Upper arm |
 | `Chest.3mf` | Chest / torso |
 | `Belly.3mf` | Belly |
+| `BellyJoint.3mf` | Hex coupler on body servo shaft |
 | `Chair.3mf` | Chair |
 | `SeatLeft.3mf` | Left chair seat |
 | `SeatRight.3mf` | Right chair seat |

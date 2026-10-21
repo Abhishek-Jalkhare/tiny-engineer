@@ -529,8 +529,16 @@ def main(argv: list[str] | None = None) -> int:
         capture_output=True,
         text=True,
     )
-    if ver.stdout.strip():
-        print(f"version: {ver.stdout.strip()}")
+    version = (ver.stdout or "").strip()
+    if version:
+        print(f"version: {version}")
+    # sch erc / pcb drc flags used below need KiCad 10; Ubuntu 24.04 ships 7.x.
+    major = version.split(".", 1)[0] if version else ""
+    if major != "10":
+        raise SystemExit(
+            f"error: need KiCad 10 (kicad-cli version starts with 10.), "
+            f"got {version or '(unknown)'}. {KICAD_CLI_HINT}"
+        )
 
     boards = discover_boards(repo_root, args.boards or None)
 

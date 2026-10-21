@@ -2,7 +2,7 @@ import { useState } from "preact/hooks";
 import { Button } from "../components/Button";
 import { ConfigSection } from "../components/ConfigSection";
 import { SERVO_NAMES } from "../servos";
-import { type Calibration, CENTER, IDENTIFY_DELTA } from "./useCalibration";
+import { type Calibration, CENTER, identifyDelta } from "./useCalibration";
 import { useSetupServo } from "./useSetupServo";
 
 export function PlaceParts({ calibration }: { calibration: Calibration }) {
@@ -23,7 +23,8 @@ export function PlaceParts({ calibration }: { calibration: Calibration }) {
       return;
     }
 
-    const sequence = [CENTER + IDENTIFY_DELTA, CENTER - IDENTIFY_DELTA, CENTER];
+    const delta = identifyDelta(index);
+    const sequence = [CENTER + delta, CENTER - delta, CENTER];
 
     for (const angle of sequence) {
       if (!(await moveServos({ index, angle }))) {

@@ -93,14 +93,92 @@ jobs:
 
   pcb:
     runs-on: ubuntu-24.04
+    env:
+      # Official lite AppImage (no 3D libs). Bump when project moves past 10.0.7.
+      KICAD_APPIMAGE_VERSION: "10.0.7"
+      KICAD_ROOT: /home/runner/kicad-appimage
     steps:
       - uses: actions/checkout@v4
+      - name: Cache KiCad AppImage extract
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.KICAD_ROOT }}
+          key: kicad-lite-appimage-${{ env.KICAD_APPIMAGE_VERSION }}-v1
       - name: Install KiCad 10
         run: |
-          sudo add-apt-repository -y ppa:kicad/kicad-10.0-releases
-          sudo apt-get update
-          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends kicad
-          kicad-cli version
+          set -euo pipefail
+          # Avoid Launchpad PPAs (flaky 503 / timeouts → Ubuntu KiCad 7 with no sch erc).
+          # Official lite AppImage from KiCad mirrors is enough for kicad-cli ERC/DRC/netlist.
+          VER="${KICAD_APPIMAGE_VERSION}"
+          DEST="${KICAD_ROOT}/${VER}"
+          ARCHIVE="kicad-${VER}-x86_64-lite.AppImage.tar"
+          CLI=""
+          if [ -x "${DEST}/usr/bin/kicad-cli" ]; then
+            CLI="${DEST}/usr/bin/kicad-cli"
+          elif [ -x "${DEST}/bin/kicad-cli" ]; then
+            CLI="${DEST}/bin/kicad-cli"
+          fi
+          if [ -z "${CLI}" ]; then
+            tmp=$(mktemp -d)
+            trap 'rm -rf "${tmp}"' EXIT
+            cd "${tmp}"
+            urls=(
+              "https://kicad-downloads.s3.cern.ch/appimage/stable/${ARCHIVE}"
+              "https://mirrors.mit.edu/kicad/appimage/stable/${ARCHIVE}"
+              "https://downloads.kicad.org/kicad/linux/explore/stable/download/${ARCHIVE}"
+            )
+            downloaded=0
+            for url in "${urls[@]}"; do
+              echo "Downloading ${url}"
+              if curl -fL --retry 5 --retry-all-errors --retry-delay 10 \
+                  --connect-timeout 30 --max-time 900 -o "${ARCHIVE}" "${url}"; then
+                downloaded=1
+                break
+              fi
+              echo "download failed; trying next mirror…"
+            done
+            if [ "${downloaded}" -ne 1 ]; then
+              echo "error: could not download KiCad ${VER} lite AppImage from any mirror"
+              exit 1
+            fi
+            tar -xf "${ARCHIVE}"
+            appimage=$(echo kicad-*-x86_64-lite.AppImage)
+            chmod +x "${appimage}"
+            "./${appimage}" --appimage-extract
+            root=""
+            if [ -d AppDir ]; then
+              root=AppDir
+            elif [ -d squashfs-root ]; then
+              root=squashfs-root
+            else
+              echo "error: AppImage extract produced neither AppDir nor squashfs-root"
+              ls -la
+              exit 1
+            fi
+            mkdir -p "${KICAD_ROOT}"
+            rm -rf "${DEST}"
+            mv "${root}" "${DEST}"
+            if [ -x "${DEST}/usr/bin/kicad-cli" ]; then
+              CLI="${DEST}/usr/bin/kicad-cli"
+            elif [ -x "${DEST}/bin/kicad-cli" ]; then
+              CLI="${DEST}/bin/kicad-cli"
+            else
+              echo "error: kicad-cli not found under ${DEST}"
+              find "${DEST}" -name kicad-cli 2>/dev/null | head
+              exit 1
+            fi
+          fi
+          echo "KICAD_CLI=${CLI}" >> "${GITHUB_ENV}"
+          echo "Installed: ${CLI}"
+          out=$("${CLI}" version)
+          echo "kicad-cli version: ${out}"
+          case "${out}" in
+            10.*) ;;
+            *)
+              echo "error: need KiCad 10.x, got ${out}"
+              exit 1
+              ;;
+          esac
       - name: ERC / DRC / expected-nets
         run: python3 scripts/check_pcb.py --report-dir artifacts/pcb
       - uses: actions/upload-artifact@v4

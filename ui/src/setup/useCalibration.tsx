@@ -6,6 +6,7 @@ import { useResettableState } from "../useResettableState";
 
 export const CENTER = 90;
 export const IDENTIFY_DELTA = 3;
+export const IDENTIFY_DELTA_BODY = 5;
 
 export const JOINT = {
   head: 0,
@@ -14,6 +15,10 @@ export const JOINT = {
   rightHand: 3,
   body: 4,
 } as const;
+
+export function identifyDelta(index: number): number {
+  return index === JOINT.body ? IDENTIFY_DELTA_BODY : IDENTIFY_DELTA;
+}
 
 export type CalibMode = "hub" | "assembly" | "guided";
 

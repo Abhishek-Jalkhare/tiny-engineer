@@ -118,6 +118,19 @@ describe("setup wizard", () => {
 
     expect(screen.getByRole("button", { name: "✓ Head" }).classList.contains("done")).toBe(true);
 
+    await click("Identify Body");
+
+    await waitFor(() =>
+      expect(
+        robot
+          .sent("POST", "/setup/servo")
+          .filter((request) => (request.json as { index?: number }).index === 4)
+          .map((request) => (request.json as { angle: number }).angle),
+      ).toEqual([95, 85, 90]),
+    );
+
+    expect(screen.getByRole("button", { name: "✓ Body" }).classList.contains("done")).toBe(true);
+
     await click("Done · back to hub");
 
     expect(screen.getByRole("button", { name: "Calibrate servos" })).toBeTruthy();

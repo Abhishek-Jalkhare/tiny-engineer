@@ -106,10 +106,9 @@ Use this recipe whenever a later step says to center a servo:
 ## 7. Belly — last servo
 
 1. Take the **last** unused servo. [Center it](#center-a-servo).
-2. Press `Belly` onto the servo shaft — `Belly` has a dedicated pocket for the shaft. Do **not** use a plastic horn.
-3. Orient the servo **perpendicular** to `Belly`, with the longer end of the servo body toward the **rounded** side of `Belly`.
-4. When alignment is correct, fasten with the **screw that came with the servo**.
-5. Unplug this servo from the PCA9685 before continuing.
+2. Press `BellyJoint` onto the servo shaft. Do **not** use a plastic horn. `BellyJoint` is a hexagon — seat it so **one flat edge is parallel to the shorter side of the servo body** (not point-to-side). Match image below.
+3. When alignment is correct, fasten with the **screw that came with the servo**.
+4. Unplug this servo from the PCA9685 before continuing.
 
 ![Belly](./assembly_visuals/belly_1.jpg)
 
@@ -124,11 +123,10 @@ Use this recipe whenever a later step says to center a servo:
 
 ## 9. Seat the body in `Chair`
 
-1. Take the robot body (`Head` through `Belly`). The servo already fastened to `Belly` goes into the dedicated pocket in `Chair`.
-2. Orient so the front of the robot matches the front of the chair (the way the figure sits).
-3. Route that servo’s lead through the **vertical tunnel** in `Chair` and out under the chair.
-4. Slide `SeatLeft` and `SeatRight` in from the sides onto the rails / pockets on `Chair`. The seats lock the body servo in place so it cannot drop out of `Chair`. Watch the cables — do not pinch or crush them while seating the parts.
-5. Fasten the two seat parts to each other with **two M2 screws** (M2×16 mm works).
+1. Take the servo with `BellyJoint` already mounted ([§7](#7-belly--last-servo)). Seat it in the pocket at the **bottom** of `Chair`. Route its lead out under `Chair` and forward through the **center channel** on the underside.
+2. Slide `SeatLeft` and `SeatRight` onto `Chair` from the sides along the **dovetail** joints. Do **not** push them fully together yet — leave a gap so `BellyJoint` stays clear.
+3. From above, lower `Belly` (with the rest of the robot already fastened to it from [§8](#8-route-chest-cables-through-belly-and-join)) onto `BellyJoint`. The base of `Belly` has a hexagonal pocket that matches `BellyJoint`. Once it is seated, push the seat parts together — they lock `Belly` and the body in place. Watch the cables — do not pinch or crush them.
+4. Optionally fasten the seats with **two M2×16 mm screws**. The joint also holds without them; the chair backrests will clamp the seats later.
 
 This finishes the **main robot body**. Set it aside — next steps build the desk.
 
