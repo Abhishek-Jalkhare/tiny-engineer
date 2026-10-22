@@ -74,7 +74,6 @@ String readPatch(JsonObjectConst body, SettingsPatch& patch) {
   read("volume", patch.volume);
   read("welcome", patch.welcome);
   read("serial_log", patch.serialLog);
-  read("servo_hold", patch.servoHold);
   read("continuous_timeout", patch.continuousTimeoutMin);
   read("loading", patch.loading);
   read("eyes_style", patch.eyesStyle);
@@ -121,7 +120,6 @@ JsonDocument settingsJson() {
   doc["volume"] = settingsVolume();
   doc["welcome"] = settingsWelcomeEnabled();
   doc["serial_log"] = settingsSerialLogEnabled();
-  doc["servo_hold"] = settingsServoHold();
   doc["continuous_timeout"] = settingsContinuousTimeoutMin();
   doc["loading"] = settingsLoading();
   doc["eyes_style"] = settingsEyesStyle();

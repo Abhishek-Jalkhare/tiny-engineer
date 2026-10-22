@@ -61,7 +61,6 @@ Rapid flash/upload can still yank joints if the body drooped after PWM limp (sof
 | --- | --- |
 | `POST /servos/park` / serial `servos_park` | Smooth mid, flush `spose`, keep PWM until reboot |
 | PlatformIO `pre:upload` | [`scripts/park_servos_before_upload.py`](../../scripts/park_servos_before_upload.py) shells `tiny-engineer park --transport serial`; warns and continues if the robot is offline |
-| Setting `servo_hold` | Skip idle/sleep PWM full-off so the pose does not limp between flashes |
 | `welcome=0` | Quieter post-boot motion while iterating (optional) |
 | Unplug servo **5 V / V+** | Absolute safety when pose is unknown |
 
@@ -69,7 +68,7 @@ Rapid flash/upload can still yank joints if the body drooped after PWM limp (sof
 
 Analog servos hunt while a 50 Hz pulse is present. Firmware does **not** use OE for this: after animation `none` parks (awake rest or device-sleep chin-down) and every joint is still for `SERVO_PWM_RELEASE_DELAY_MS` (**2000** ms), it writes PCA9685 full-off (`setPWM(channel, 0, 4096)`) on channels 0–4. SIG stays low; the servo goes **limp** (no holding torque). Head pitch can droop; hands-down usually rests on the desk.
 
-Skipped when `servo_hold` is on, when `POST /servos/park` armed a until-reboot hold, or in setup AP.
+Skipped when `POST /servos/park` armed a until-reboot hold, or in setup AP.
 
 The next animation, `/test/servo`, or `/setup/servo` rewrite the last commanded pulse before moving. Leaving `none` restores all five channels at their last angles first.
 

@@ -231,7 +231,7 @@ void pollServoPoseSave() {
 }
 
 bool servoOutputsHoldActive() {
-  return g_parkHoldUntilReboot || settingsServoHold();
+  return g_parkHoldUntilReboot;
 }
 
 void setServoParkHoldUntilReboot(bool hold) {

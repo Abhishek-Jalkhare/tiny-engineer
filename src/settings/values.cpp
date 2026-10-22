@@ -16,7 +16,6 @@ SettingsValues SettingsValues::defaults() {
   values.volume = SETTINGS_DEFAULT_VOLUME;
   values.welcome = SETTINGS_DEFAULT_WELCOME;
   values.serialLog = SETTINGS_DEFAULT_SERIAL_LOG;
-  values.servoHold = SETTINGS_DEFAULT_SERVO_HOLD;
   values.continuousTimeoutMin = SETTINGS_DEFAULT_CONTINUOUS_TIMEOUT_MIN;
   strlcpy(values.loading, SETTINGS_DEFAULT_LOADING, sizeof(values.loading));
   strlcpy(values.eyesStyle, SETTINGS_DEFAULT_EYES_STYLE, sizeof(values.eyesStyle));
@@ -38,7 +37,6 @@ void SettingsValues::apply(const SettingsPatch& patch) {
   volume = patch.volume.value_or(volume);
   welcome = patch.welcome.value_or(welcome);
   serialLog = patch.serialLog.value_or(serialLog);
-  servoHold = patch.servoHold.value_or(servoHold);
   continuousTimeoutMin = patch.continuousTimeoutMin.value_or(continuousTimeoutMin);
   servoRanges = patch.servoRanges.value_or(servoRanges);
   oledRotate180 = patch.oledRotate180.value_or(oledRotate180);
@@ -79,7 +77,7 @@ void SettingsValues::log(const char* prefix) const {
     line,
     sizeof(line),
     "%s sleep_timeout=%umin hostname=%s volume=%u welcome=%s serial_log=on "
-    "servo_hold=%s continuous_timeout=%umin loading=%s eyes_style=%s access_token=%s "
+    "continuous_timeout=%umin loading=%s eyes_style=%s access_token=%s "
     "link_mode=%s wifi_networks=%u servos=%u-%u;%u-%u;%u-%u;%u-%u;%u-%u rgb_order=%s "
     "oled_rotate_180=%s",
     prefix,
@@ -87,7 +85,6 @@ void SettingsValues::log(const char* prefix) const {
     hostname,
     volume,
     welcome ? "on" : "off",
-    servoHold ? "on" : "off",
     static_cast<unsigned>(continuousTimeoutMin),
     loading,
     eyesStyle,

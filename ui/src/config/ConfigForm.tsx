@@ -27,7 +27,6 @@ function draftFrom(settings: Settings) {
     volume: settings.volume,
     welcome: settings.welcome,
     serialLog: settings.serial_log,
-    servoHold: settings.servo_hold,
     loading: settings.loading,
     eyesStyle: settings.eyes_style,
   };
@@ -77,7 +76,6 @@ export function ConfigForm({ settings }: { settings: Settings }) {
           volume: draft.volume,
           welcome: draft.welcome,
           serial_log: draft.serialLog,
-          servo_hold: draft.servoHold,
           continuous_timeout: Number(draft.continuousTimeout),
           loading: draft.loading,
           eyes_style: draft.eyesStyle,
@@ -251,21 +249,6 @@ export function ConfigForm({ settings }: { settings: Settings }) {
               onChange={(event) => set({ serialLog: event.currentTarget.checked })}
             />
             <label htmlFor="config-serial-log">Log to USB serial</label>
-          </div>
-        </div>
-        <div className="form-group">
-          <div className="field-head">
-            <span>Servo hold</span>
-            <ApplyBadge when="now" />
-          </div>
-          <div className="toggle-row">
-            <input
-              type="checkbox"
-              id="config-servo-hold"
-              checked={draft.servoHold}
-              onChange={(event) => set({ servoHold: event.currentTarget.checked })}
-            />
-            <label htmlFor="config-servo-hold">Keep PWM after idle (less droop before flash)</label>
           </div>
         </div>
       </ConfigSection>

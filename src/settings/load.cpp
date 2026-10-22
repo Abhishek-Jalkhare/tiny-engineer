@@ -46,6 +46,15 @@ void migrateLegacyWifi() {
   g_settingsPrefs.end();
 }
 
+// Older firmware stored servo_hold here. Idle/sleep always limp now.
+constexpr const char* kLegacyServoHold = "srv_hold";
+
+void dropLegacyServoHold() {
+  if (g_settingsPrefs.isKey(kLegacyServoHold)) {
+    g_settingsPrefs.remove(kLegacyServoHold);
+  }
+}
+
 }  // namespace
 
 void initSettings() {
@@ -54,10 +63,11 @@ void initSettings() {
   bool legacyWifi = false;
 
   // RW so a missing namespace is created without Preferences NOT_FOUND ERROR.
-  // Boot only reads (get*/isKey); saves use openForWrite in nvs.cpp.
+  // Boot reads settings and drops the retired srv_hold key; saves use openForWrite.
   if (g_settingsPrefs.begin(kNs, false)) {
     g_settings.load();
     legacyWifi = loadWifiNetworks();
+    dropLegacyServoHold();
     g_settingsPrefs.end();
   } else {
     serialLogPrintln("Settings: NVS open failed; using defaults");

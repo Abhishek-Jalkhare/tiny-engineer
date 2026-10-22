@@ -175,7 +175,6 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
     body["volume"] = settingsVolume();
     body["welcome"] = settingsWelcomeEnabled();
     body["serial_log"] = settingsSerialLogEnabled();
-    body["servo_hold"] = settingsServoHold();
     body["continuous_timeout"] = settingsContinuousTimeoutMin();
     body["loading"] = settingsLoading();
     body["eyes_style"] = settingsEyesStyle();
@@ -223,14 +222,6 @@ void handleReq(uint16_t id, uint8_t ver, const uint8_t* payload, size_t payloadL
         return;
       }
       patch.welcome = req["welcome"].as<bool>();
-      any = true;
-    }
-    if (!req["servo_hold"].isUnbound()) {
-      if (!req["servo_hold"].is<bool>()) {
-        sendJsonRes(id, 400, "invalid servo_hold", body);
-        return;
-      }
-      patch.servoHold = req["servo_hold"].as<bool>();
       any = true;
     }
     if (!req["link_mode"].isUnbound()) {

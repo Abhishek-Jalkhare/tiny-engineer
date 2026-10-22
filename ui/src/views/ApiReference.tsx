@@ -113,13 +113,6 @@ export function ApiReference() {
           </tr>
           <tr>
             <td>
-              <code>servo_hold</code>
-            </td>
-            <td>boolean</td>
-            <td>Keep PWM after idle/sleep park (default false)</td>
-          </tr>
-          <tr>
-            <td>
               <code>continuous_timeout</code>
             </td>
             <td>integer</td>

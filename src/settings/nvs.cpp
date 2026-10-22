@@ -58,10 +58,6 @@ void SettingsValues::load() {
     serialLog = g_settingsPrefs.getBool(kKeySerialLog, serialLog);
   }
 
-  if (g_settingsPrefs.isKey(kKeyServoHold)) {
-    servoHold = g_settingsPrefs.getBool(kKeyServoHold, servoHold);
-  }
-
   loadMinutes(continuousTimeoutMin, kKeyContTo, settingsValidateContinuousTimeout);
   loadText(loading, kKeyLoading, settingsValidateLoading);
   loadText(eyesStyle, kKeyEyesStyle, settingsValidateEyesStyle);
@@ -130,7 +126,6 @@ bool writeValues(const SettingsValues& values, const SettingsValues& before, boo
   putUInt(kKeyVolume, values.volume, before.volume);
   putBool(kKeyWelcome, values.welcome, before.welcome);
   putBool(kKeySerialLog, values.serialLog, before.serialLog);
-  putBool(kKeyServoHold, values.servoHold, before.servoHold);
   putUInt(kKeyContTo, values.continuousTimeoutMin, before.continuousTimeoutMin);
   putText(kKeyLoading, values.loading, before.loading);
   putText(kKeyEyesStyle, values.eyesStyle, before.eyesStyle);

@@ -112,7 +112,6 @@ curl http://tiny-engineer.local/settings
   "volume": 70,
   "welcome": true,
   "serial_log": false,
-  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -134,7 +133,6 @@ curl http://tiny-engineer.local/settings
 | `volume` | Speaker gain percent for tones and WAV playback (default **70**) |
 | `welcome` | Play welcome animation on boot when Wi-Fi connects (default **true**). Also enables head/neck motion during `sleep_inertia` loading |
 | `serial_log` | USB serial debug logging (default **false**). When off, diagnostic `Serial` output is suppressed |
-| `servo_hold` | Keep PWM after idle/sleep park instead of limp full-off (default **false**). Reduces droop before flash; use with [`POST /servos/park`](#post-servospark) for flash-safe centering |
 | `continuous_timeout` | Minutes a continuous animation (`typing` / `reading` / `thinking` / `talking`) may run before the firmware switches to `attention` then idle (default **5**) |
 | `loading` | Boot loading screen: `progress` (bar + large IP for 3 s) or `sleep_inertia` (eyes wake; no bar/IP). Default **`progress`**. Applies on **next reboot** |
 | `eyes_style` | OLED eyes look: `classic` (procedural rounded eyes), `kaomoji` (animated faces), `cover` (full-half bars for an eye-hole mask), or `dots` (12×12 circles). Default **`classic`**. Applies **immediately**. Classic, cover, and dots sequences are described under [`POST /anim`](#post-anim); kaomoji face mapping is under [Kaomoji eyes](#kaomoji-eyes); cover drawing is under [Cover eyes](#cover-eyes); dots drawing is under [Dots eyes](#dots-eyes) |
@@ -150,7 +148,7 @@ curl http://tiny-engineer.local/settings
 
 ### `POST /settings`
 
-Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `servo_hold`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
+Update one or more settings from a JSON object body. Values are written to NVS. `sleep_timeout`, `volume`, `welcome`, `serial_log`, `continuous_timeout`, `eyes_style`, and `access_token` apply immediately; a changed `hostname` or `loading` takes effect on the **next reboot**. WiFi networks are set with [`PUT /settings/wifi`](#put-settingswifi). Servo ranges (`servo_mins` + `servo_maxs`), RGB LED mapping (`rgb_order`) and OLED rotation (`oled_rotate_180`) are **setup AP only** and apply immediately. Requires Bearer when auth is enabled.
 
 ```bash
 curl -X POST "http://tiny-engineer.local/settings" \
@@ -172,7 +170,6 @@ curl -X POST "http://192.168.4.1/settings" \
   "volume": 70,
   "welcome": true,
   "serial_log": false,
-  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",
@@ -195,7 +192,6 @@ curl -X POST "http://192.168.4.1/settings" \
 | `volume` | integer | 0–100 percent |
 | `welcome` | boolean | Boot welcome animation |
 | `serial_log` | boolean | USB serial debug logging |
-| `servo_hold` | boolean | Keep PWM after idle/sleep park |
 | `continuous_timeout` | integer | 1–1440 minutes (positive) |
 | `loading` | string | `progress` or `sleep_inertia` |
 | `eyes_style` | string | `classic`, `kaomoji`, `cover`, or `dots` |
@@ -229,7 +225,7 @@ The list must hold 1 to 5 networks, so the robot always has one to try; factory 
 
 ### `POST /settings/reset`
 
-Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) and `servo_hold` are cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
+Factory reset: clears the NVS `te` namespace and restores settings to compile-time defaults and clears every saved WiFi network. **Servo min/max, RGB LED mapping (`rgb_order`), and OLED rotation (`oled_rotate_180`) are kept.** Internal last-pose blob (`spose`) is cleared/reset with defaults. After reset, power-cycle (or press reset) so the device reopens setup AP mode and WiFi can be configured again; the servo, screen, and LED steps are pre-filled with the saved values and can be retuned. Until reboot, credentials are cleared in NVS but the radio may still be on the previous STA network. No body. Requires Bearer when auth is enabled. Same JSON shape as `GET /settings`.
 
 The Config web UI clears the browser-stored Bearer token and shows a one-shot gate: power-cycle the device, then join the robot WiFi shown on the OLED and open the setup wizard. It does not poll for reconnect.
 
@@ -245,7 +241,6 @@ curl -X POST "http://tiny-engineer.local/settings/reset"
   "volume": 70,
   "welcome": true,
   "serial_log": false,
-  "servo_hold": false,
   "continuous_timeout": 5,
   "loading": "progress",
   "eyes_style": "classic",

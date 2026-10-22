@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Provides a flash-safe park command and PWM hold so joints sit at mid with torque before upload reset, and optionally stay held between flashes when limp droop would make restore unsafe.
+Provides a flash-safe park command and PWM hold so joints sit at mid with torque before upload reset.
 
 ## Requirements
 
@@ -34,17 +34,6 @@ The serial API MUST accept op `servos_park` with the same park semantics as `POS
 #### Scenario: Park over serial when provisioned
 - **WHEN** a provisioned host sends serial op `servos_park`
 - **THEN** the device parks and returns a success response for that request id
-
-### Requirement: Setting servo_hold skips idle limp
-The settings surface MUST include boolean `servo_hold` (default false). When true, the device MUST NOT release PWM after idle/sleep park. The setting MUST apply immediately and MUST reset to default on factory reset.
-
-#### Scenario: Enable hold via settings
-- **WHEN** a client sets `servo_hold` to true
-- **THEN** subsequent idle/sleep park leaves PWM enabled instead of full-off limp
-
-#### Scenario: Default after factory reset
-- **WHEN** factory reset completes
-- **THEN** `servo_hold` is false
 
 ### Requirement: CLI park command
 The CLI MUST provide a `park` command that invokes park over the selected transport (HTTP or serial) using the same transport resolution as other robot commands.
