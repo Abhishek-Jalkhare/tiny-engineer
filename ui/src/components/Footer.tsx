@@ -5,8 +5,8 @@ export function Footer() {
 
   return (
     <footer>
-      <a href="https://github.com/jamro/tiny-engineer" target="_blank" rel="noopener">
-        github.com/jamro/tiny-engineer
+      <a href="https://tinyengineer.dev" target="_blank" rel="noopener">
+        tinyengineer.dev
       </a>
       <p id="fw-version">{version ? `Firmware ${version}` : "Firmware …"}</p>
     </footer>
