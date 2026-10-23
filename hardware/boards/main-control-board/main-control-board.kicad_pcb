@@ -11859,6 +11859,36 @@
 		(uuid "8f8fba84-f0c5-4148-a577-e4b5ae438530")
 	)
 	(gr_line
+		(start 130 103.5)
+		(end 130 102.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "8654aa80-b88a-48e1-9665-71d75de2b463")
+	)
+	(gr_line
+		(start 130 103.5)
+		(end 160 103.5)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "ecd0e54b-65a2-4203-8d12-7de1f8e9d8ef")
+	)
+	(gr_line
+		(start 160 103.5)
+		(end 160 90)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(layer "B.SilkS")
+		(uuid "b1752421-31a4-441f-9ba9-3a4cda2b7f77")
+	)
+	(gr_line
 		(start 180.34 86.6)
 		(end 184 86.6)
 		(stroke
@@ -12279,7 +12309,7 @@
 		(layer "Edge.Cuts")
 		(uuid "b2416b72-bd55-4c5c-8715-290cd906aaa9")
 	)
-	(gr_text "TINY SOFTWARE ENGINEER\nMain Control Board\nHW REV #3 | 2026-10-06\ngithub.com/jamro/tiny-engineer"
+	(gr_text "TINY SOFTWARE ENGINEER\nMain Control Board\nHW REV #3 | 2026-10-06\nhttps://tinyengineer.dev"
 		(at 151.4 114 0)
 		(layer "F.SilkS")
 		(uuid "366bc4bb-d37f-4099-af31-758c225e0b34")
@@ -12774,6 +12804,18 @@
 			)
 		)
 	)
+	(gr_text "SCAN TO ASSEMBLE.\nPLEASE?"
+		(at 145.5 101 0)
+		(layer "B.SilkS")
+		(uuid "f0ef82f6-5ae4-46c2-8a3f-15f04cf8bd06")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.12)
+			)
+			(justify left mirror)
+		)
+	)
 	(gr_text "DO NOT USE ESP USB WHILE BOARD USB IS CONNECTED!"
 		(at 179.705 86.6 0)
 		(layer "B.SilkS")
@@ -13069,6 +13111,19 @@
 			(justify right mirror)
 		)
 	)
+	(gr_text "HUMAN, I NEED A BODY!"
+		(at 145.5 98.5 0)
+		(layer "B.SilkS")
+		(uuid "99e4248a-a8d6-43de-9f7a-e0373106d610")
+		(effects
+			(font
+				(size 0.8 0.8)
+				(thickness 0.16)
+				(bold yes)
+			)
+			(justify left mirror)
+		)
+	)
 	(gr_text "SPEAKER"
 		(at 116 103.6 0)
 		(layer "B.SilkS")
@@ -13094,6 +13149,18 @@
 			)
 			(justify mirror)
 		)
+	)
+	(barcode
+		(at 152.908 96.266 0)
+		(layer "B.SilkS")
+		(size 12 12)
+		(text "https://tinyengineer.dev/q/pcb-rev3")
+		(text_height 1)
+		(type qr)
+		(ecc_level M)
+		(hide yes)
+		(knockout no)
+		(uuid "79c547f2-5d88-4261-8cd4-8830526e48f2")
 	)
 	(segment
 		(start 142.075 116.925)
@@ -13539,7 +13606,7 @@
 		(uuid "2597dba2-6629-4e79-9967-06a6165a78ba")
 	)
 	(via
-		(at 158.115 90.805)
+		(at 157.734 88.9)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13584,7 +13651,7 @@
 		(uuid "510b59a6-07d4-4f4e-9a2e-a884591ab771")
 	)
 	(via
-		(at 158.115 89.535)
+		(at 158.877 88.9)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13646,16 +13713,7 @@
 		(uuid "6645aeaa-3ba0-4707-bf70-de1cd213e965")
 	)
 	(via
-		(at 158.115 92.075)
-		(size 0.8)
-		(drill 0.4)
-		(layers "F.Cu" "B.Cu")
-		(free yes)
-		(net "GND")
-		(uuid "671a34a6-f05e-43ae-8ea1-599c7850db39")
-	)
-	(via
-		(at 159.168235 104.2)
+		(at 159.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13664,7 +13722,7 @@
 		(uuid "68210e0e-defa-4a69-8dc7-88d687776f9d")
 	)
 	(via
-		(at 149.168235 104.2)
+		(at 149.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13673,7 +13731,7 @@
 		(uuid "6860dc8f-4e92-44bb-81b1-8f91f0144f36")
 	)
 	(via
-		(at 147.168235 104.2)
+		(at 147.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13843,7 +13901,7 @@
 		(uuid "cfe02248-0779-417b-9862-67f67ff76a9c")
 	)
 	(via
-		(at 158.168235 104.2)
+		(at 158.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13861,7 +13919,7 @@
 		(uuid "e0d9399c-a614-4255-9462-16ac6319af17")
 	)
 	(via
-		(at 157.168235 104.2)
+		(at 157.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
@@ -13870,7 +13928,7 @@
 		(uuid "e25fe4ce-2be9-4c3d-aacd-dd4312b4eb18")
 	)
 	(via
-		(at 148.168235 104.2)
+		(at 148.168235 104.5)
 		(size 0.8)
 		(drill 0.4)
 		(layers "F.Cu" "B.Cu")
