@@ -34,6 +34,7 @@ Pick a path. Depth lives in the linked pages.
 | **AI coding agents (repo rules)** | [AGENTS.md](../AGENTS.md) |
 | **Contribute / report a vuln** | [CONTRIBUTING.md](../CONTRIBUTING.md); [SECURITY.md](../SECURITY.md) |
 | **Share a finished build** | [Show and tell](https://github.com/jamro/tiny-engineer/discussions/categories/show-and-tell) — [how to post](../CONTRIBUTING.md#share-your-build) |
+| **Public landing content** (tinyengineer.dev `/`) | [`web/landing-page.md`](../web/landing-page.md) — messaging brief; visuals in [`web/STYLE.md`](../web/STYLE.md) |
 
 Also: [robot-movement.md](robot-movement.md) (servo axes and safe ranges); optional [macos-lock-unlock.md](macos-lock-unlock.md) (sleep/wake on Mac screen lock).
 
