@@ -30,7 +30,11 @@ Hook mode (no animation args):
 Event map:
   sessionStart, beforeSubmitPrompt, beforeReadFile  → reading
   afterAgentThought, preCompact                     → thinking
-  beforeShellExecution, subagentStart, afterFileEdit → typing
+  beforeShellExecution, afterShellExecution,
+  beforeMCPExecution, afterMCPExecution,
+  subagentStart, afterFileEdit                      → typing
+  postToolUseFailure + permission_denied            → abort
+  postToolUseFailure (other)                        → error
   stop + status aborted                             → abort
   stop + status error                               → error
   stop (completed / missing / other)                → ring

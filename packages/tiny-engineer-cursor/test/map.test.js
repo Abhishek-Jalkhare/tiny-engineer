@@ -34,12 +34,48 @@ test("EVENT_ANIM maps typing events to typing", () => {
     "typing"
   );
   assert.equal(
+    animationForEvent({ hook_event_name: "afterShellExecution" }),
+    "typing"
+  );
+  assert.equal(
+    animationForEvent({ hook_event_name: "beforeMCPExecution" }),
+    "typing"
+  );
+  assert.equal(
+    animationForEvent({ hook_event_name: "afterMCPExecution" }),
+    "typing"
+  );
+  assert.equal(
     animationForEvent({ hook_event_name: "subagentStart" }),
     "typing"
   );
   assert.equal(
     animationForEvent({ hook_event_name: "afterFileEdit" }),
     "typing"
+  );
+});
+
+test("postToolUseFailure maps permission_denied to abort", () => {
+  assert.equal(
+    animationForEvent({
+      hook_event_name: "postToolUseFailure",
+      failure_type: "permission_denied",
+    }),
+    "abort"
+  );
+});
+
+test("postToolUseFailure maps other failures to error", () => {
+  assert.equal(
+    animationForEvent({ hook_event_name: "postToolUseFailure" }),
+    "error"
+  );
+  assert.equal(
+    animationForEvent({
+      hook_event_name: "postToolUseFailure",
+      failure_type: "timeout",
+    }),
+    "error"
   );
 });
 

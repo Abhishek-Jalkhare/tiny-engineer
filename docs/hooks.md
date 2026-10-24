@@ -98,6 +98,30 @@ Use `timeout` **≥ 30** (cold `npx` can exceed 2s).
         "timeout": 30
       }
     ],
+    "afterShellExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "afterMCPExecution": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
+    "postToolUseFailure": [
+      {
+        "command": "npx -y tiny-engineer hook cursor",
+        "timeout": 30
+      }
+    ],
     "subagentStart": [
       {
         "command": "npx -y tiny-engineer hook cursor",
@@ -153,13 +177,18 @@ That shorthand makes npm fetch via **SSH** (`git@github.com:…`). Cursor hooks 
 | `preToolUse` (edit/search/shell tools) | `typing` | Agent is about to write, shell, search, task, etc. |
 | `beforeReadFile` | `reading` | File is about to be read |
 | `beforeShellExecution` | `typing` | Shell command is about to run |
+| `afterShellExecution` | `typing` | Shell command finished (`duration` excludes approval wait) |
+| `beforeMCPExecution` | `typing` | MCP tool is about to run |
+| `afterMCPExecution` | `typing` | MCP tool finished |
+| `postToolUseFailure` (`failure_type: permission_denied`) | `abort` | Tool denied by permission |
+| `postToolUseFailure` (other) | `error` | Tool failed or timed out |
 | `subagentStart` | `typing` | Subagent starts |
 | `afterFileEdit` | `typing` | Agent finished an edit |
 | `stop` (`status: completed` or missing) | `ring` | Agent turn completes |
 | `stop` (`status: aborted`) | `abort` | Agent turn cancelled |
 | `stop` (`status: error`) | `error` | Agent turn failed |
 
-Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`), maps to a pose in [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`. Events whose `conversation_id` or `generation_id` is `""` are skipped (no POST). Missing IDs still map.
+Each anim hook runs the same command with **no animation args**. Cursor pipes event JSON on stdin; the CLI reads `hook_event_name` (plus `tool_name` for `preToolUse`, `status` for `stop`, `failure_type` for `postToolUseFailure`), maps to a pose in [`packages/tiny-engineer-cli/src/integrations/cursor/map.js`](../packages/tiny-engineer-cli/src/integrations/cursor/map.js), and `POST`s `/anim?name=…` (2s HTTP timeout, exit 0). Optional `--url` overrides the default `http://tiny-engineer.local`. Events whose `conversation_id` or `generation_id` is `""` are skipped (no POST). Missing IDs still map.
 
 If the robot has an `access_token` set, put the same value in `TINY_ENGINEER_TOKEN` (process env, user config from `tiny-engineer setup`, or project-root `.env` as an override). The CLI then sends `Authorization: Bearer <token>`. Without a token, no auth header is sent.
 
