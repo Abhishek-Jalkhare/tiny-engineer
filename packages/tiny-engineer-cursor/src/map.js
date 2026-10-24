@@ -32,12 +32,14 @@ const EVENT_ANIM = {
   afterMCPExecution: "typing",
   subagentStart: "typing",
   afterFileEdit: "typing",
+  // Cursor fires this often on non-errors (timeouts, cancelled tools, etc.).
+  postToolUseFailure: "none",
 };
 
 /**
  * Map a Cursor hook payload to an animation name, or null to skip.
  * Empty conversation_id or generation_id skips the pose (missing IDs still map).
- * @param {{ hook_event_name?: string, tool_name?: string, status?: string, failure_type?: string, conversation_id?: string, generation_id?: string }} event
+ * @param {{ hook_event_name?: string, tool_name?: string, status?: string, conversation_id?: string, generation_id?: string }} event
  * @returns {string | null}
  */
 export function animationForEvent(event) {
@@ -57,11 +59,6 @@ export function animationForEvent(event) {
     if (event.status === "aborted") return "abort";
     if (event.status === "error") return "error";
     return "ring";
-  }
-
-  if (name === "postToolUseFailure") {
-    if (event.failure_type === "permission_denied") return "abort";
-    return "error";
   }
 
   return EVENT_ANIM[name] ?? null;

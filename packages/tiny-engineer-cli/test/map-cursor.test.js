@@ -56,27 +56,24 @@ test("EVENT_ANIM maps typing events to typing", () => {
   );
 });
 
-test("postToolUseFailure maps permission_denied to abort", () => {
+test("postToolUseFailure maps to none (avoids false-positive error/abort)", () => {
+  assert.equal(
+    animationForEvent({ hook_event_name: "postToolUseFailure" }),
+    "none"
+  );
   assert.equal(
     animationForEvent({
       hook_event_name: "postToolUseFailure",
       failure_type: "permission_denied",
     }),
-    "abort"
-  );
-});
-
-test("postToolUseFailure maps other failures to error", () => {
-  assert.equal(
-    animationForEvent({ hook_event_name: "postToolUseFailure" }),
-    "error"
+    "none"
   );
   assert.equal(
     animationForEvent({
       hook_event_name: "postToolUseFailure",
       failure_type: "timeout",
     }),
-    "error"
+    "none"
   );
 });
 

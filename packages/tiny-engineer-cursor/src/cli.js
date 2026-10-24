@@ -33,8 +33,7 @@ Event map:
   beforeShellExecution, afterShellExecution,
   beforeMCPExecution, afterMCPExecution,
   subagentStart, afterFileEdit                      → typing
-  postToolUseFailure + permission_denied            → abort
-  postToolUseFailure (other)                        → error
+  postToolUseFailure                                → none
   stop + status aborted                             → abort
   stop + status error                               → error
   stop (completed / missing / other)                → ring
