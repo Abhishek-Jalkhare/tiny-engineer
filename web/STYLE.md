@@ -399,6 +399,7 @@ Do not copy any one reference literally.
 
 - `/` — full landing (hero + See it work → Build your own); copy in [`landing-page.md`](landing-page.md)
 - `/flash/` — USB web installer (ESP Web Tools)
+- `/screens/` — laptop screen insert generator; sizes from `presets.json`, written by `scripts/laptop_screens.py`
 
 ### Homepage structure
 
