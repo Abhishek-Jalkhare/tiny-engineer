@@ -436,6 +436,10 @@ function loadImage(file) {
 
   const img = new Image();
   img.onload = () => {
+    if (state.imageUrl === url) {
+      URL.revokeObjectURL(url);
+      state.imageUrl = null;
+    }
     state.image = img;
     renderPreview();
   };
