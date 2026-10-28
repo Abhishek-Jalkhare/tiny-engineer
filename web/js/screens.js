@@ -425,9 +425,28 @@ function syncColours() {
 
 function loadImage(file) {
   if (!file || !file.type.startsWith('image/')) return;
+
+  if (state.imageUrl) {
+    URL.revokeObjectURL(state.imageUrl);
+    state.imageUrl = null;
+  }
+
+  const url = URL.createObjectURL(file);
+  state.imageUrl = url;
+
   const img = new Image();
-  img.onload = () => { state.image = img; renderPreview(); };
-  img.src = URL.createObjectURL(file);
+  img.onload = () => {
+    state.image = img;
+    renderPreview();
+  };
+  img.onerror = () => {
+    if (state.imageUrl === url) {
+      URL.revokeObjectURL(url);
+      state.imageUrl = null;
+    }
+  };
+  img.src = url;
+
 }
 
 function setSource(source) {
